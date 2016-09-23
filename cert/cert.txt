@@ -1,0 +1,114 @@
+
+================================================================================
+Create keypair and extract public key from an RSA keypair
+================================================================================
+
+Create the following folders/files are needed in the following locations in 'pwd'
+as mentioned in '/etc/ssl/openssl.cnf'
+This is only needed if you want to act as a 'CA'
+demoCA/
+demoCA/index.txt
+demoCA/newcerts/
+demoCA/serial
+demoCA/private
+
+--------------------------------------------------------------------------------
+Initial serial number used while signing as a 'CA'
+--------------------------------------------------------------------------------
+echo "01" > demoCA/serial
+
+--------------------------------------------------------------------------------
+Create private key for CA/Self:
+--------------------------------------------------------------------------------
+openssl genrsa -out mykey.pem 2048
+openssl genrsa 2048 > mykey.pem
+
+openssl genrsa -out demoCA/private/cakey.pem 2048							<<== If done at CA
+
+Create self signed certificate (only) using 'demoCA/private/cakey.pem':
+--------------------------------------------------------------------------------
+openssl req -new -x509 -days 3650 -key mykey.pem -out mycert.pem -nodes
+openssl req -new -x509 -days 3650 -key 'demoCA/private/cakey.pem' -out demoCA/cacert.pem -nodes		<<== If done at CA
+
+Create certificate and private key (one shot):
+--------------------------------------------------------------------------------
+openssl req -x509 -days 3650 -newkey rsa:2048 -keyout mykey.pem -out mycert.pem -nodes
+
+Create client key and 'csr', sign it to make 'crt'
+--------------------------------------------------------------------------------
+openssl genrsa -out cl.key 2048
+openssl req -new -key cl.key -out BinoyJayan.csr
+openssl ca -in BinoyJayan.csr BinoyJayan.crt								<<-- Done by CA
+
+View certificate(s)/key(s):
+--------------------------------------------------------------------------------
+openssl rsa -text -noout -in mykey.pem 
+openssl x509 -in cacert.pem -dates -issuer -noout -subject
+openssl req -in BinoyJayan.csr -noout -text
+openssl x509 -in BinoyJayan.crt -dates -issuer -noout -subject
+
+Retrieve/Extract public key from certificate
+--------------------------------------------------------------------------------
+openssl x509 -pubkey -noout -in mycert.pem  > pubkey.pem
+
+Convert pem to DER format
+--------------------------------------------------------------------------------
+openssl x509 -outform der -in mycert.pem -out mycert.der
+
+
+CA  : Certificate Authority
+CSR : Certificate Sign Request
+CRT : Certificate
+
+
+--------------------------------------------------------------------------------
+bin2hex.py: Convert binary file (Certificate in .DER format to hex)
+--------------------------------------------------------------------------------
+#!/usr/bin/python
+
+import sys
+
+if len(sys.argv) < 3:
+   print "Usage: " 
+   print sys.argv[0] + " <binary file> <hex output file>"
+   sys.exit(1)
+
+
+f1 = open(sys.argv[1], 'rb')
+f2 = open(sys.argv[2], 'wb')
+
+f2.write("const char key[] = {\n")
+
+count = 0
+tcount = 0
+
+byte = "x"
+while byte != "":
+    byte = f1.read(1)
+    if byte == "":
+	break
+    count += 1
+    tcount += 1
+    f2.write("0x%.2x, " % ord(byte))
+    if count > 11:
+        count = 0
+        f2.write("\n")
+
+f2.write("\n};\n")
+
+print "Keysize = " , tcount , "bytes"
+f2.write("// Keysize = %d bytes\n" % tcount);
+
+f1.close()
+f2.close()
+--------------------------------------------------------------------------------
+
+
+
+References
+--------------------------------------------------------------------------------
+https://www.youtube.com/watch?v=Gw-Iq9StoXg
+
+
+
+
