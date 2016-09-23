@@ -1,0 +1,127 @@
+
+============================================================================================
+dmsetup - Low level dm device handling
+============================================================================================
+
+dd if=/dev/zero of=cryptfile bs=1M count=500
+sudo losetup /dev/loop0 cryptfile
+
+--------------------------------------------------------------------------------------------
+⁠Device Table Mappings
+--------------------------------------------------------------------------------------------
+Syntax:
+
+sudo dmsetup create bad_disk 
+<start1> <length1> <mapping1> [mapping1 parameters...]
+<start2> <length2> <mapping2> [mapping2 parameters...]
+<start3> <length3> <mapping3> [mapping3 parameters...]
+...
+Ctrl+D
+
+start	-	starting block in virtual device
+length	-	length of the segment in sectors of 512 byes
+
+start2 = start1 + length1
+start3 = start2 + length2
+
+'mapping' can be one of:
+
+linear
+striped
+mirror
+snapshot and snapshot-origin
+error
+zero
+multipath
+crypt
+device-mapper RAID
+thin
+thin-pool
+
+NB: Sizes in the Device Mapper are always specified in sectors (512 bytes).
+
+--------------------------------------------------------------------------------------------
+linear and error mapping
+--------------------------------------------------------------------------------------------
+
+<start> <length> linear /dev/<device> <offset>
+<start> <length> linear major:minor   <offset>
+<start> <length> error 
+
+sudo dmsetup create bad_disk 
+0 8 linear /dev/loop0 0 
+8 1 error
+9 204791 linear /dev/loop0 9
+Ctrl^D
+
+sudo blockdev --setra 0 /dev/mapper/bad_disk			<<-- Lookahead = 0
+sudo blockdev --getsz /dev/mapper/bad_disk			<<-- Get size
+
+Total number of sectors in this disk = 8 + 1 (bad) + 204791 = 204800
+Total size of the disk               = 204800 * 512 = 104857600 bytes = 100MiB
+
+sudo dd if=/dev/mapper/bad_disk of=/dev/null bs=1k count=4	<<-- Access first  8 sectors (1024 * 4 bytes = 512 * 8 bytes)
+sudo dd if=/dev/mapper/bad_disk of=/dev/null bs=1k count=5	<<-- Access first 10 sectors (1024 * 5 bytes = 512 * 10 bytes)
+
+sudo dmsetup remove bad_disk 
+
+--------------------------------------------------------------------------------------------
+zero mapping
+--------------------------------------------------------------------------------------------
+
+<start> <length> zero 
+
+sudo dmsetup create fake_disk
+0 64 linear /dev/loop0 0
+64 102400 zero
+Ctrl^D
+
+sudo blockdev --getsize64 /dev/mapper/fake_disk
+
+sudo mke2fs /dev/mapper/fake_disk
+sudo mount  /dev/mapper/fake_disk mnt
+
+sudo dmsetup remove fake_disk
+
+--------------------------------------------------------------------------------------------
+The striped Mapping Target
+--------------------------------------------------------------------------------------------
+<start> <length> striped #stripes chunk_size device1 offset1 ... deviceN offsetN
+
+
+--------------------------------------------------------------------------------------------
+The crypt Mapping Target
+--------------------------------------------------------------------------------------------
+<start> <length> crypt cipher key IV-offset device offset
+
+start			starting block in virtual device
+length			length of this segment in sectors of 512 byes
+cipher			Cipher consists of cipher[-chainmode]-ivmode[:iv options].
+  cipher		Ciphers available are listed in /proc/crypto (for example, aes).
+  chainmode		Always use cbc. Do not use ebc; it does not use an initial vector (IV).
+  ivmode[:iv options]	IV is an initial vector used to vary the encryption. The IV mode is plain or 'essiv:hash'
+			An ivmode of -plain uses the sector number (plus IV offset) as the IV.
+			An ivmode of -essiv is an enhancement avoiding a watermark weakness.
+
+key			Encryption key, supplied in hex
+IV-offset		Initial Vector (IV) offset
+device			block device, referenced by the device name or ;major:minor; number pair
+offset			starting offset of the mapping on the device
+
+Examples:
+0 1019904 crypt aes-cbc-plain 92c5f589373259d48dbb6e7b3b1b4cf5e0ec2d549f8c51fb118be48f60663207 0 /dev/loop0 4096
+0 2097152 crypt aes-cbc-plain 0123456789abcdef0123456789abcdef 0 /dev/loop0 0
+
+sudo dmsetup create crypt
+0 1019904 crypt aes-cbc-plain 92c5f589373259d48dbb6e7b3b1b4cf5e0ec2d549f8c51fb118be48f60663207 0 /dev/loop0 4096
+Ctrl+D
+
+--------------------------------------------------------------------------------------------
+Reference
+--------------------------------------------------------------------------------------------
+
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Logical_Volume_Manager_Administration/device_mapper.html#dm-mappings
+
+
+
+

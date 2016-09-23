@@ -84,6 +84,25 @@ Reference
 --------------------------------------------------------------------------------------------
 http://www.thegeekstuff.com/2016/03/cryptsetup-lukskey/
 https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Logical_Volume_Manager_Administration/device_mapper.html#dm-mappings
+https://wiki.archlinux.org/index.php/Dm-crypt/Device_encryption
+
+
+http://nelenkov.blogspot.co.uk/2015/05/hardware-accelerated-disk-encryption-in.html
+https://nelenkov.blogspot.in/2014/10/revisiting-android-disk-encryption.html
+http://source.android.com/devices/tech/encryption/index.html
+http://www.chronox.de/crypto-API
+http://www.logix.cz/michal/devel/cryptodev/cryptodev-20091126
+http://www.saout.de/misc/dm-crypt
+https://gitlab.com/cryptsetup/cryptsetup/wikis/DMCrypt
+https://gitlab.com/cryptsetup/cryptsetup
+Documentation/device-mapper/dm-crypt.txt
+
+http://nelenkov.blogspot.jp/2012/08/changing-androids-disk-encryption.html
+https://gitlab.com/cryptsetup/cryptsetup/wikis/DMCrypt
+https://www.qualcomm.com/products/snapdragon/security
+https://www.qualcomm.com/news/snapdragon/2014/11/07/cryptographic-module-snapdragon-805-fips-140-2-certified
+http://nelenkov.blogspot.com/2014/10/revisiting-android-disk-encryption.html
+https://www.tarsnap.com/scrypt.html
 
 
 
