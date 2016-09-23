@@ -1,0 +1,70 @@
+
+------------------------------------------------------------------------------
+ Opening files for diff
+------------------------------------------------------------------------------
+
+vimdiff file1  file2
+
+ - OR - 
+
+vim -d  file1  file2
+
+ - OR - 
+
+vim     file1
+:vsplit file2
+:diffthis
+Ctrl +ww
+:diffthis
+
+
+
+:diffthis  - On each window to achieve vimdiff functionality in vim
+             If two files are loaded in splits (:vs or :sp)
+:diffoff   - Used to turn off the diff mode in 'vim'
+
+------------------------------------------------------------------------------
+ Keyboard Shortcuts
+------------------------------------------------------------------------------
+
+do - Get changes from other window into the current window.
+
+dp - Put the changes from current window into the other window.
+
+]c - Jump to the next change.
+
+[c - Jump to the previous change.
+
+Ctrl + WW - Switch to the other split window.
+
+Ctrl + W + Right - Switch to the right split window
+
+Ctrl + W + Left  - Switch to the left  split window
+
+zo - open fold
+
+zc - close fold
+
+Ctrl + W + x - Swap the current window with the next
+
+Ctrl + W + r - Rotate the windows forward
+
+
+:help window-moving   <<-- More information
+
+
+------------------------------------------------------------------------------
+ Other Commands
+------------------------------------------------------------------------------
+:diffupdate :diffu	Recalculate diff if the files are not modified outside
+:e 			Reload files
+
+
+
+ 
+
+Reference:
+----------
+http://pubs.opengroup.org/onlinepubs/9699919799/utilities/vi.html#tag_20_152_13_88
+
+
