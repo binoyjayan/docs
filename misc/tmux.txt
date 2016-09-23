@@ -1,0 +1,88 @@
+
+============================================================
+.tmux.conf
+============================================================
+
+# remap prefix to Control + a
+unbind C-b
+set -g prefix C-a
+
+set -g prefix C-a
+unbind C-b
+bind C-a send-prefix
+
+# force a reload of the config file
+unbind r
+bind r source-file ~/.tmux.conf
+
+setw -g monitor-activity on
+set -g visual-activity on
+
+set-window-option -g window-status-current-bg yellow
+
+set-option -g mouse-select-pane on
+
+# quick pane cycling
+unbind ^A
+bind ^A select-pane -t :.+
+
+============================================================
+Commands
+============================================================
+NB: work: session_name
+
+------------------------------------------------------------
+Session Mgmt
+------------------------------------------------------------
+tmux new -s    work
+tmux attach -t work		<<-- Join
+tmux switch -t work2
+tmux list-sessions
+tmux detach (prefix + d)
+tmux new-session -s work -n quic
+
+------------------------------------------------------------
+Window mgmt
+------------------------------------------------------------
+tmux new-window (prefix + c)
+tmux select-window -t :0-9 (prefix + 0-9)
+tmux rename-window (prefix + ,)
+tmux rename-window (prefix + ,)
+
+
+------------------------------------------------------------
+Pane
+------------------------------------------------------------
+
+tmux split-window (prefix + ")
+tmux split-window -h (prefix + %)
+tmux swap-pane -[UDLR] (prefix + { or })
+tmux select-pane -[UDLR]
+tmux select-pane -t :.+
+
+
+------------------------------------------------------------
+Helpful tmux commands
+------------------------------------------------------------
+tmux list-keys
+tmux list-commands
+tmux info
+tmux source-file ~/.tmux.conf
+
+
+
+
+------------------------------------------------------------
+Reference:
+------------------------------------------------------------
+
+https://robots.thoughtbot.com/a-tmux-crash-course
+http://lukaszwrobel.pl/blog/tmux-tutorial-split-terminal-windows-easily
+
+
+
+
+
+
+
+

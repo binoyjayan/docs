@@ -77,8 +77,6 @@ MK dump:	92 c5 f5 89 37 32 59 d4 8d bb 6e 7b 3b 1b 4c f5
 4. Create a new key using this master key file
    cryptsetup luksAddKey /dev/loop0 --master-key-file existinglukskey.bin
 
-
-
 --------------------------------------------------------------------------------------------
 Reference
 --------------------------------------------------------------------------------------------
