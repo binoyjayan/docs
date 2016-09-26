@@ -1,0 +1,532 @@
+
+
+==============================================================================================================================
+ Board Bringup steps for ARM
+==============================================================================================================================
+
+------------------------------------------------------------------------------------------------------------------------------
+defconfig 
+------------------------------------------------------------------------------------------------------------------------------
+
+Create a defconfig file from a generic/specific arm configuration.
+make savedefconfig may be used to save configuration as defconfig
+
+
+------------------------------------------------------------------------------------------------------------------------------
+Configure machine type
+------------------------------------------------------------------------------------------------------------------------------
+
+Register your machine type
+- Provides a unique numerical identifier for your machine
+- Provides a configuration variable for your machine using 'CONFIG_MACH_$MACHINE'
+- Provides runtime machine-check -> machine_is_xxx()
+  http://www.arm.linux.org.uk/developer/machines/
+- This information ends up in 'arch/arm/tools/mach-types'
+  It contains machine type table with following columns
+  For example, here machine is 'ebsa110'
+
+machine_is_xxx		ebsa110
+CONFIG_xxxx		MACH_EBSA110
+MACH_TYPE_xxx 		EBSA110
+number			0
+
+------------------------------------------------------------------------------------------------------------------------------
+ ARM Firmware requirements
+------------------------------------------------------------------------------------------------------------------------------
+
+ - Detailed in Documentation/ARM/Booting
+ - Initialize all memory controller and system RAM
+ - Initialize a single serial port for early boot messages
+ - Disable MMU
+ - Disable all caches
+ - Quiesce all DMA capable devices
+ - Provide kernel parameter ATAG list
+ - Required registers:
+    r0 = 0
+    r1 = machine number(type)
+    r2 = &(ATAG list)
+    r2 = DTB address (In case of Kernel with device tree)
+
+
+
+------------------------------------------------------------------------------------------------------------------------------
+ Directory structure
+------------------------------------------------------------------------------------------------------------------------------
+
+The 'arch/arm' directory
+
+ - mm					- Cache/TLB/page fault/DMA handling
+ - kernel				- core kernel setup, APIs, and syscall handling
+ - lib					- low-level helper functions (mostly ASM)
+ - common				- code shared across various machine types
+ - arch-$MACHINE 			- Machine-type specific code (arch-ixp425, -pxa, -omap, etc)
+ - configs/$PLAT_defconfig		- Default configuration for $PLATFORM (lubbock, ipaq, etc)
+ - include/asm-arm/arch-$MACHINE	- Machine-specific headers (include/asm/arch)
+
+
+------------------------------------------------------------------------------------------------------------------------------
+ Early Init
+------------------------------------------------------------------------------------------------------------------------------
+1. DEBUG_LL configurations
+   Enable DEBUG_LL settings for the board. It includes the UART PHY and VIRT address settings.
+   Improper configuration can trigger a data abort even in the bootloader level.
+   earlycon is preferred over this if available.
+
+2. Early serial during decompression
+    - arch_decomp_setup()
+    - putstr()
+    - include/asm-arm/arch-$MACHINE/uncompress.h
+
+3. Debug Serial Output
+  - addruart, rx		Provide UART address in \rx
+  - senduart rd, rx		Send character in \rd (@ address \rx)
+  - busyuart rd, rx		Wait until UART is done sending
+  - waituart rd, rx		Wait for Clear to Send
+  - Found in arch/arm/kernel/debug.S
+
+
+------------------------------------------------------------------------------------------------------------------------------
+CPU Detection
+------------------------------------------------------------------------------------------------------------------------------
+
+Kernel contains table of CPUs it supports
+ - arch/arm/mm/proc-$CPUTYPE
+ - include/asm-arm/procinfo.h
+ - First thing kernel does is check CPUID with table of CPUs
+ - Table contains a mask and expected value
+     - If (cpuid & cpu_mask) == cpu_val we are OK
+     - Otherwise we can't run on this CPU
+ - If OK, call CPU's _setup function
+
+------------------------------------------------------------------------------------------------------------------------------
+Low Level CPU APIs
+------------------------------------------------------------------------------------------------------------------------------
+
+Processor-specific functions
+ - Data abort, CPU init, reset, shutdown, idle
+ - include/asm-arm/cpu-multi32.h
+
+TLB handling
+ - Flush user and kernel TLB entries
+ - include/asm-arm/tlbflush.h
+
+Cache functions
+ - Data abort, CPU init, reset, shutdown, idle
+ - include/asm-arm/cpu-multi32.h
+ - Flush and clean kernel and user range from cache
+ - Sync icache and dcache for new text
+ - Sync dcache with memory for DMA operations
+ - include/asm-arm/cacheflush.h
+
+User data functions
+ - Clear and copy user page
+ - include/asm-arm/page.h
+
+------------------------------------------------------------------------------------------------------------------------------
+Machine Detection
+------------------------------------------------------------------------------------------------------------------------------
+
+1. If CPU is detected OK, check machine type
+2. Each platform has a machine descriptor structure:
+
+   MACHINE_START(IXDP425, "Intel IXDP425 Development Platform")
+       MAINTAINER("MontaVista Software, Inc.")
+       BOOT_MEM(PHYS_OFFSET,
+       IXP4XX_PERIPHERAL_BASE_PHYS,
+       IXP4XX_PERIPHERAL_BASE_VIRT)
+       MAPIO(ixdp425_map_io)
+       INITIRQ(ixp4xx_init_irq)
+       .timer = &ixp4xx_timer,
+       BOOT_PARAMS(0x0100)
+       INIT_MACHINE(ixdp425_init)
+    MACHINE_END
+
+3. Machine name/number from arch/arm/tool/mach-types
+
+4. In case of device tree
+   /dts-v1/;
+   ..
+   ..
+   / {
+       model = "Qualcomm APQ8064";
+       compatible = "qcom,apq8064";
+    }
+
+
+------------------------------------------------------------------------------------------------------------------------------
+ Static I/O Mapping
+------------------------------------------------------------------------------------------------------------------------------
+
+Certain devices needed before VM is fully up and running
+ - Interrupt controllers, timer tick
+
+Certain devices require large VM areas
+ - Static mapping allows usage of 1MB sections
+ - ioremap() uses only 4K pages
+    Larger TLB footprint
+ - Call mdesc->map_io()
+ - Call create_mapping() with static I/O mappings
+
+
+------------------------------------------------------------------------------------------------------------------------------
+ARM-Linux Memory Map
+------------------------------------------------------------------------------------------------------------------------------
+
+1. Kernel memory is in upper 1GB
+2. Static mappings fit in VMALLOC_END – 0xfeffffff
+3. VMALLOC_END is defined by you
+   include/asm-arm/arch-$MACHINE/vmalloc.h
+
+
+0x00000000 - 0x00000fff				- NULL/Vector Trap
+0x00001000 - TASK_SIZE				- User Mappings
+TASK_SIZE - PAGE_OFFSET (0xc0000000)		- Kernel Modules
+PAGE_OFFSET (0xc0000000) - VMALLOC_START	- Direct Mapped RAM
+VMALLOC_START - VMALLOC_END			- 
+VMALLOC_END - 0xfeffffff			- Static I/O
+0xf1000000 - 0xffffffff				- Reserved for vectors, DMA buffers, etc
+
+------------------------------------------------------------------------------------------------------------------------------
+ARM IRQs
+------------------------------------------------------------------------------------------------------------------------------
+ - NR_IRQS defined in include/asm-arm/arch/irqs.h
+ - IRQ numbering is up to developer
+ - First level IRQ decoding done in ASM
+       - include/asm/arch-$MACHINE/entry-macro.S
+       - get_irqnr_and_base irqnr, irqstat, base, tmp
+          - Linux IRQ number returned in \irqnr
+          - Others are for temp calculations
+ - IRQ “Chips”
+    - Chip defines a mask, unmask, and ack functions
+
+------------------------------------------------------------------------------------------------------------------------------
+System Timer Tick
+------------------------------------------------------------------------------------------------------------------------------
+
+1. Initialized after IRQs
+   - Load timer with LATCH
+        ((CLOCK_TICK_RATE + HZ/2) / HZ)
+        CLOCK_TICK_RATE is HW clock freq.
+   - Request timer interrupt
+       Set SA_INTERRUPT
+   - Timer ticks every (1/HZ)s
+
+2. Timer interrupt:
+   - Call timer_tick()
+   - Reload timer source if needed
+
+3. gettimeoffset() function
+   - Returns number of usec since last timer tick
+
+
+------------------------------------------------------------------------------------------------------------------------------
+Board Level Device Initialization
+------------------------------------------------------------------------------------------------------------------------------
+After core subsystems are initialized, board_init() is called
+ - Do any last needed fixups for the platform
+ - Add platform devices (flash, I2C, etc)
+ - Very board/platform specific
+
+------------------------------------------------------------------------------------------------------------------------------
+DTS File configuration
+------------------------------------------------------------------------------------------------------------------------------
+
+Example of dts file; arch/arm/boot/dts/qcom-apq8064.dtsi
+
+As the bare minimum mention the following in DT:
+
+ 1. SOC node, cpu node, interrupt controller node
+ 2. Mention model name and compatible strings.
+ 3. mention L2-Cache node
+ 4. Power Management for cpu.
+ 5. SoC Nodes
+ 6. Interrupt controller node and mention in the 
+ 7. Timer nodes
+ 8. Clock controller
+ 9. Regulators for RPM.
+10. GSBI if required
+11. Nodes for peripheral devices
+
+------------------------------------------------------------------------------------------------------------------------------
+Enable specific driver
+------------------------------------------------------------------------------------------------------------------------------
+
+1. Port dts changes from existing/smiliar platform if available
+2. Find driver from compatible string in dts
+3. Enable corresponding driver in defconfig
+4. Before making dts file perfect, ensure  that '_probe' is called successfully.
+5. Make more dts changes only if probe fails.
+
+------------------------------------------------------------------------------------------------------------------------------
+Example of a node in 'qcom-apq8064-v2.0.dtsi' :
+This is taken from a DTS include file. The configuration may be overridden in another actual DTS file.
+------------------------------------------------------------------------------------------------------------------------------
+
+gsbi3: gsbi@16200000 {
+   status = "disabled";
+   compatible = "qcom,gsbi-v1.0.0";
+   reg = <0x16200000 0x100>;
+   clocks = <&gcc GSBI3_H_CLK>;
+   clock-names = "iface";
+   #address-cells = <1>;
+   #size-cells = <1>;
+   ranges;
+
+   serial@16240000 {
+           compatible = "qcom,msm-uartdm-v1.3", "qcom,msm-uartdm";
+           reg = <0x16240000 0x1000>,
+                 <0x16200000 0x1000>;
+           interrupts = <0 150 0x0>;
+           interrupt-parent = <&intc>;
+           clocks = <&gcc GSBI3_UART_CLK>, <&gcc GSBI3_H_CLK>;
+           clock-names = "core", "iface";
+           status = "disabled";
+   };
+};
+
+------------------------------------------------------------------------------------------------------------------------------
+ Overriding configuration in actual DTS file
+------------------------------------------------------------------------------------------------------------------------------
+#include "qcom-apq8064-v2.0.dtsi"
+
+/ {
+    model = "Qualcomm APQ8064/ADP2ES2P5";
+    compatible = "qcom,apq8064-ifc6410", "qcom,apq8064";
+
+    soc {
+        gsbi@16200000 {
+            status = "ok";
+            qcom,mode = <GSBI_PROT_I2C_UART>;
+            serial@16240000 {
+                status = "ok";
+            };
+        };
+    };
+};
+
+Here, the status is made as 'ok' which enables this node.
+
+------------------------------------------------------------------------------------------------------------------------------
+Other changes to be done
+------------------------------------------------------------------------------------------------------------------------------
+1. PINCTRL and MUX
+2. Common clock
+3. Regulator, IPC between RPM server, client
+4. Serial console and initial shell, rootfs
+
+==============================================================================================================================
+ Troubleshooting guide
+==============================================================================================================================
+
+------------------------------------------------------------------------------------------------------------------------------
+ No console logs due to serial driver issues
+------------------------------------------------------------------------------------------------------------------------------
+
+Enable earlyconsole [earlycon]
+   - Enables console at an early stage
+   - Enables early debugging
+   - cmdline: earlycon=msm_hsl_uart,0x78b1000
+   - msm_hsl_uart is the name with which the driver registers with the earlycon framework
+   - EARLYCON_DECLARE(msm_hsl_uart, msm_hsl_earlycon_setup);
+   - Physical address of uart device - 0x78b1000
+   - CONFIG_EARLY_IOREMAP=y
+   - If this does not work go for earlyprintk
+
+Enable earlyprintk
+   - Enables console prints without going through serial driver
+   - Enables early debugging
+   - Mention serial port address and baud rate if ttyMSM0 driver does not work.
+   - cmdline: console=ttyMSM0,115200n8 earlyprintk=serial,0x16240000,115200n8 init=/init
+   - The device driver with name 'ttyMSM0' takes control later if it works correctly.
+   - CONFIG_EARLY_PRINTK=y
+   - CONFIG_DEBUG_LL=y. This may depend on further UART address configurations which may need to be enabled
+   - Git-commit: 93fd03a8c6728b58879f8af20ffd55d9c32a778b
+
+
+------------------------------------------------------------------------------------------------------------------------------
+ No console after earlycon getting disabled
+------------------------------------------------------------------------------------------------------------------------------
+
+The console logs appear after the earlyconsole is enabled. 
+But once kernel tries to initialize the driver after disabling the earlycon, no messages appear.
+
+Solution: In this case, try to see if the driver is initialized properly in the 'probe'.
+
+Uncompressing Linux... done, booting the kernel.
+...
+[    0.000000] bootconsole [earlycon0] enabled
+...
+[    0.813597] bootconsole [earlycon0] disabled
+<...No messages after this...>
+
+
+------------------------------------------------------------------------------------------------------------------------------
+ Console tty driver gets initialized but Non-ASCII characters appear on the screen
+------------------------------------------------------------------------------------------------------------------------------
+
+Earlycon is enabled, and the console driver gets initialized too.
+The 'probe' shows the intialization sequence. But there are some Non-ASCII characters which appear on screen.
+This could happen when the console control transfers from the earlycon module to the driver.
+At this time the tty driver may or may not be working properly.
+
+Uncompressing Linux... done, booting the kernel.
+...
+[    0.000000] bootconsole [earlycon0] enabled
+...
+[    0.657486] gsbi 16200000.gsbi: GSBI port protocol: 6 crci: 0
+[    0.663620] msm_serial 16240000.serial: msm_serial: detected port #0
+[    0.669430] msm_serial 16240000.serial: uartclk = 1843200
+[    0.674978] 16240000.serial: ttyMSM0 at MMIO 0x16240000 (irq = 214, base_baud = 115200) �            &�ɚ�¢��j͵}�굕�ɥ����齹�ͽ��������сz������Ɂ�j��h        &�Ժ�����꽹�ͽ�������5M5��ځ*������5R�ڂrͅͅd
+
+
+Solution: Disable earlycon and troubleshoot tty driver and probe function/device tree node details.
+
+
+------------------------------------------------------------------------------------------------------------------------------
+The earlyconsole logs stops appearing after a while
+------------------------------------------------------------------------------------------------------------------------------
+This could happen if any of the drivers get crashed.
+To see where the execution is broken, enable 'initcall_debug' in kernel
+
+Passing the option "initcall_debug" on the kernel command line will cause timing information to be printed to the console for each initcall. initcalls are used to initialize statically linked kernel drivers and subsystems and contribute a significant amount of time to the Linux boot process. The output looks like this:
+
+    calling ipc_init+0x0/0x28 @ 1
+    msgmni has been set to 42
+    initcall ipc_init+0x0/0x28 returned 0 after 1872 usecs
+
+    cmdline: initcall_debug
+
+If the output does not contain the 'initcall' entry the corresponding 'calling' entry, 
+then that init function may be the culprit.
+
+Dependencies:
+    CONFIG_PRINTK_TIME   [lib/Kconfig.debug +3]
+    CONFIG_KALLSYMS      [init/Kconfig +1427]
+
+
+Sort based on time consumed:
+    dmesg -s 128000 | grep "initcall" | sed "s/\(.*\)after\(.*\)/\2 \1/g" | sort -n
+
+Ref:
+
+http://elinux.org/Initcall_Debug
+
+------------------------------------------------------------------------------------------------------------------------------
+ Console tty driver works but no shell appears
+------------------------------------------------------------------------------------------------------------------------------
+
+We disabled earlycon now and the tty device driver successfully outputs messages into the console device.
+But the messages stops after a while and no shell appears.
+
+This could happen if the driver works only in poll mode and not in interrupt mode.
+
+Solution: If using device tree node, try to see the phandle of the interrupt-parent of the serial device.
+Here it is 'intc'. This is the node name representing the interrupt controller hardware.
+
+interrupt-parent = <&intc>;
+
+--------------------------------------------------------------------------------------------------
+Example console tree node configured as a gsbi peripheral:
+This node is contained in a dts file ('qcom-apq8064-v2.0.dtsi') for the SoC 
+--------------------------------------------------------------------------------------------------
+                gsbi3: gsbi@16200000 {
+                        status = "disabled";
+                        compatible = "qcom,gsbi-v1.0.0";
+                        reg = <0x16200000 0x100>;
+                        clocks = <&gcc GSBI3_H_CLK>;
+                        clock-names = "iface";
+                        #address-cells = <1>;
+                        #size-cells = <1>;
+                        ranges;
+
+                        serial@16240000 {
+                                compatible = "qcom,msm-uartdm-v1.3", "qcom,msm-uartdm";
+                                reg = <0x16240000 0x1000>,
+                                      <0x16200000 0x1000>;
+                                interrupts = <0 150 0x0>;
+                                interrupt-parent = <&intc>;
+                                clocks = <&gcc GSBI3_UART_CLK>, <&gcc GSBI3_H_CLK>;
+                                clock-names = "core", "iface";
+                                status = "disabled";
+                        };
+                };
+
+--------------------------------------------------------------------------------------------------
+This node is contained in a board specific dts file - 'qcom-apq8064-adp2es2p5.dts'
+--------------------------------------------------------------------------------------------------
+#include "qcom-apq8064-v2.0.dtsi"
+
+/ {
+        model = "Qualcomm APQ8064/ADP2ES2P5";
+        compatible = "qcom,apq8064-ifc6410", "qcom,apq8064";
+
+        soc {
+                gsbi@16200000 {
+                        status = "ok";
+                        qcom,mode = <GSBI_PROT_I2C_UART>;
+                        serial@16240000 {
+                                status = "ok";
+                        };
+                };
+        };
+};
+
+------------------------------------------------------------------------------------------------------------------------------
+Bad page state in process swapper  pfn:xxxxx
+------------------------------------------------------------------------------------------------------------------------------
+
+This could happen if the processor is trying to access a non existant page frame or the one which is not enabled.
+Solution: Try to restrict the memory by using the kernel command line argument 'mem'
+
+cmdline = 'console=ttyMSM0,115200n8 mem=2G init=/init ...'
+
+In the above line the memory available is mentioned as '2GB'.
+
+
+[    0.000000] BUG: Bad page state in process swapper  pfn:fffc8
+[    0.000000] page:ef7fb900 count:0 mapcount:0 mapping:  (null) index:0x0
+[    0.000000] flags: 0x56240053(locked|error|dirty|active|reclaim|mlocked)
+[    0.000000] page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+[    0.000000] bad because of flags:
+[    0.000000] flags: 0x200041(locked|active|mlocked)
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Tainted: G    B          3.18.24-00262-gf3254f9-dirty #9
+[    0.000000] [<c0215990>] (unwind_backtrace) from [<c0212c5c>] (show_stack+0x10/0x14)
+[    0.000000] [<c0212c5c>] (show_stack) from [<c0705cc8>] (dump_stack+0x84/0xc4)
+[    0.000000] [<c0705cc8>] (dump_stack) from [<c02b9630>] (bad_page+0xcc/0x11c)
+[    0.000000] [<c02b9630>] (bad_page) from [<c02b9790>] (free_pages_prepare+0x110/0x200)
+[    0.000000] [<c02b9790>] (free_pages_prepare) from [<c02bb688>] (free_hot_cold_page+0x30/0x148)
+[    0.000000] [<c02bb688>] (free_hot_cold_page) from [<c02bb9c8>] (free_highmem_page+0x28/0x7c)
+[    0.000000] [<c02bb9c8>] (free_highmem_page) from [<c0976dc8>] (mem_init+0x258/0x420)
+[    0.000000] [<c0976dc8>] (mem_init) from [<c0971acc>] (start_kernel+0x1f4/0x3a4)
+[    0.000000] [<c0971acc>] (start_kernel) from [<40208074>] (0x40208074)
+[    0.000000] Memory: 3056380K/3091452K available (5311K kernel code, 382K rwdata, 2276K rodata, 324K init, 311K bss, 35064K reserved, 2315260K highmem)
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xffc00000 - 0xffe00000   (2048 kB)
+[    0.000000]     vmalloc : 0xf0000000 - 0xff000000   ( 240 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xef800000   ( 760 MB)
+[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+[    0.000000]       .text : 0xc0208000 - 0xc0970f84   (7588 kB)
+[    0.000000]       .init : 0xc0971000 - 0xc09c2000   ( 324 kB)
+[    0.000000]       .data : 0xc09c2000 - 0xc0a21bfc   ( 383 kB)
+[    0.000000]        .bss : 0xc0a21bfc - 0xc0a6fa80   ( 312 kB)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=4, Nodes=1
+[    0.000000] Preemptible hierarchical RCU implementation.
+[    0.000000] NR_IRQS:16 nr_irqs:16 16
+
+NB: This could happen because of other reasons too such as:
+
+1. Use of drivers which access unsupported memory address ranges.
+2. ioremap of addresses that are unavailable
+3. Memory corruptions
+4. Any other hardware issues
+
+Reference
+------------
+
+http://www.arm.linux.org.uk
+
+
+
