@@ -94,6 +94,10 @@ The crypt Mapping Target
 --------------------------------------------------------------------------------------------
 <start> <length> crypt cipher key IV-offset device offset
 
+Out of the above the following only is passed to device mapper target (dm-crypt)
+
+"cipher key IV-offset device offset"
+
 start			starting block in virtual device
 length			length of this segment in sectors of 512 byes
 cipher			Cipher consists of cipher[-chainmode]-ivmode[:iv options].
