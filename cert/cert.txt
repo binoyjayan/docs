@@ -62,6 +62,78 @@ CRT : Certificate
 
 
 --------------------------------------------------------------------------------
+Sign an image e.g. boot.ing in android
+--------------------------------------------------------------------------------
+mv -f boot.img boot.img.nonsecure
+openssl dgst -sha256 -binary boot.img.nonsecure > boot.img.sha256		# Same as 'sha256sum'
+openssl rsautl -sign -in boot.img.sha256 -inkey mykey.pem -out boot.img.sig	# Sign with a private key to create digital signature
+										# without involving CA
+dd if=/dev/zero of=boot.img.sig.padded bs=2048 count=1				# Pad with the page size used in the bootloader 'fastboot'
+dd if=boot.img.sig of=boot.img.sig.padded conv=notrunc
+cat boot.img.nonsecure boot.img.sig.padded > boot.img.secure
+rm -rf boot.img.sha256 boot.img.sig boot.img.sig.padded
+mv -f boot.img.secure boot.img							# This is the signed image
+
+--------------------------------------------------------------------------------
+Validation of image
+--------------------------------------------------------------------------------
+
+signature_ptr : points to the buffer containing the digital signature attached to boot.img
+plain_text    : points to the buffer containing the boot image contents except the signature
+
+ret = decrypt(signature_ptr, plain_text);
+if (ret != hash_size) {
+	printf("ERROR: Image Invalid! signature check failed! ret %d\n", ret);
+}
+
+// Compare the expected hash with the calculated hash.
+if (memcmp(plain_text, digest, hash_size) != 0) {
+	printf("ERROR: Image Invalid! Please use another image!\n");
+}
+
+int decrypt(unsigned char *signature_ptr, unsigned char *plain_text)
+{
+        // Extract Public Key and Decrypt Signature
+        int ret = -1;
+        X509 *x509_certificate = NULL;
+        unsigned char *cert_ptr = certBuffer;
+        unsigned int cert_size = sizeof(certBuffer);
+        EVP_PKEY *pub_key = NULL;
+        RSA *rsa_key = NULL;
+
+        // Get Pubkey and Convert the internal EVP_PKEY to RSA internal struct
+
+        if ((x509_certificate = d2i_X509(NULL, &cert_ptr, cert_size)) == NULL) {
+                printf("ERROR: Image Invalid, X509_Certificate is NULL!\n");
+                goto cleanup;
+        }
+
+        pub_key = X509_get_pubkey(x509_certificate);
+        if (pub_key == NULL) {
+                printf("ERROR: Boot Invalid, PUB_KEY is NULL!\n");
+                goto cleanup;
+        }
+
+        rsa_key = EVP_PKEY_get1_RSA(pub_key);
+        if (rsa_key == NULL) {
+                printf("ERROR: Boot Invalid, RSA_KEY is NULL!\n");
+                goto cleanup;
+        }
+
+        ret = RSA_public_decrypt(SIGNATURE_SIZE, signature_ptr, plain_text, rsa_key, RSA_PKCS1_PADDING);
+        printf("DEBUG openssl: Return of RSA_public_decrypt = %d\n", ret);
+
+ cleanup:
+        if (rsa_key != NULL)
+                RSA_free(rsa_key);
+        if (x509_certificate != NULL)
+                X509_free(x509_certificate);
+        if (pub_key != NULL)
+                EVP_PKEY_free(pub_key);
+        return ret;
+}
+
+--------------------------------------------------------------------------------
 bin2hex.py: Convert binary file (Certificate in .DER format to hex)
 --------------------------------------------------------------------------------
 #!/usr/bin/python
