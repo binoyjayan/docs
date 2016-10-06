@@ -96,13 +96,14 @@ if (memcmp(plain_text, digest, SHA256_SIZE) != 0) {
 	printf("ERROR: Image Invalid! Please use another image!\n");
 }
 
-int decrypt(unsigned char *signature_ptr, unsigned char *plain_text)
+cert_ptr  : Points to the certificate in hex format (use python script to convert from DER to hex)
+cert_size : length of certificate
+
+int decrypt(unsigned char *signature_ptr, unsigned char *plain_text, unsigned char *cert_ptr, int cert_size)
 {
         // Extract Public Key and Decrypt Signature
         int ret = -1;
         X509 *x509_certificate = NULL;
-        unsigned char *cert_ptr = certBuffer;
-        unsigned int cert_size = sizeof(certBuffer);
         EVP_PKEY *pub_key = NULL;
         RSA *rsa_key = NULL;
 
