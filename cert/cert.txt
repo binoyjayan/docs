@@ -79,15 +79,20 @@ Validation of image
 --------------------------------------------------------------------------------
 
 signature_ptr : points to the buffer containing the digital signature attached to boot.img
-plain_text    : points to the buffer containing the boot image contents except the signature
+plain_text    : points to the buffer containing the boot image's message digest
+
+
+char digest[SHA256_SIZE];
 
 ret = decrypt(signature_ptr, plain_text);
 if (ret != hash_size) {
 	printf("ERROR: Image Invalid! signature check failed! ret %d\n", ret);
 }
 
+calculate_hash("boot.img", digest, SHA256_SIZE);
+
 // Compare the expected hash with the calculated hash.
-if (memcmp(plain_text, digest, hash_size) != 0) {
+if (memcmp(plain_text, digest, SHA256_SIZE) != 0) {
 	printf("ERROR: Image Invalid! Please use another image!\n");
 }
 
