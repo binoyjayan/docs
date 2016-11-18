@@ -342,15 +342,116 @@ Enable earlyprintk
    - CONFIG_DEBUG_LL=y. This may depend on further UART address configurations which may need to be enabled
    - Git-commit: 93fd03a8c6728b58879f8af20ffd55d9c32a778b
 
+------------------------------------------------------------------------------------------------------------------------------
+ No console messages after bootloader loads kernel image
+------------------------------------------------------------------------------------------------------------------------------
+
+Here, the console output is printed by the boot-loader when starting linux and
+he message "Starting kernel..." is last message that bootloader prints
+(e.g. in uboot; in other bootloaders, the messages may vary) before starting
+the kernel. The above problem is typically caused by mis-configuring the tty
+interface that the linux kernel uses by default for displaying the console
+messages. The default tty interface used the linux kernel for OMAP devices is
+configured in the kernel menuconfig. You can check the tty interface being used
+for an OMAP device by viewing the kernel .config file and seeing which
+CONFIG_OMAP_LL_DEBUG_UARTx is selected. For example, the OMAP3 beagle-board
+uses UART3 for displaying the console messages. Hence, when using the OMAP3
+beagle-board the following should be found in the .config file:
+
+# CONFIG_OMAP_LL_DEBUG_UART1 is not set
+# CONFIG_OMAP_LL_DEBUG_UART2 is not set
+CONFIG_OMAP_LL_DEBUG_UART3=y
+
+For other platforms look for similar configurations. If missing they need to
+be added to let the initial messages appear. e.g. 'Uncompressing Linux'
 
 ------------------------------------------------------------------------------------------------------------------------------
- No console after earlycon getting disabled
+ No console messages after "Uncompressing Linux...done, booting the kernel"
 ------------------------------------------------------------------------------------------------------------------------------
 
-The console logs appear after the earlyconsole is enabled. 
-But once kernel tries to initialize the driver after disabling the earlycon, no messages appear.
+The console logs appear after the following message:
 
-Solution: In this case, try to see if the driver is initialized properly in the 'probe'.
+Uncompressing Linux... done, booting the kernel.
+<...No messages after this...>
+
+
+This problem can be caused by a number of reasons. The most common reasons are
+listed below.
+
+Cause #1 - The linux console boot parameter is incorrect
+
+If the "console" boot parameter passed by the boot-loader to the kernel is
+incorrect then the above failure will be observed. This could be as simple
+as a typographical error. For example, by default the OMAP3 beagle-board
+displays console messages on the UART3 port and the default configuration
+of UART3 port is 115200 baud, 8-bit data, no parity and no flow control.
+Hence, viewing the bootloader boot arguments you should see something like
+the following:
+
+bootargs=console=ttyS2,115200n8 root=/dev/mmcblk0p2 rw rootwait
+
+The console parameter is case-sensitive and so make sure it is written
+correctly for the board you are using and there are no spaces.
+
+For example, "console=ttyS2, 115200n8" would not work.
+
+On Linux kernels version 2.6.36 and newer, use ttyO2 instead of ttyS2
+(that's capital-O, not zero).
+
+The best way to avoid such errors is to use a script for your boot parameters.
+Sample Teraterm_Scripts are available. Similar scripts can be created for
+Linux Minicom users.
+
+Cause #2 - Mis-match between boot-loader and kernel machine numbers
+
+Linux does not allow you to boot a kernel built for one hardware platform on
+some other piece of hardware, even if the underlying processor is the same.
+There is no reason why you would ever want to! When the kernel starts, one of
+the first things it does is to check that the machine number passed by the
+boot-loader matches the machine number that the kernel was built for. If the
+machine numbers do not match the kernel will not boot. This is a good thing!
+
+You can check by re-building your kernel with CONFIG_DEBUG_LL enabled.
+To enable this start the linux menuconfig utility
+
+(by executing "make menuconfig") and go to "Kernel hacking" and
+select "Kernel low-level debugging functions".
+
+For example, if you were to enable this option and attempt to boot an OMAP3
+EVM kernel on an OMAP3 beagle-board the following message would be seen.
+
+Error: unrecognized/unsupported machine ID (r1 = 0x0000060a).
+
+Available machine support:
+
+ID (hex)        NAME
+000005ff        OMAP3 EVM
+
+Please check your kernel config and/or bootloader.
+
+Cause #3 - A software bug
+
+If the previous causes did not solve your problem, then there is a chance that
+a software change is breaking the kernel for the device you are building for.
+To get more information on exactly where the kernel is failing, it is
+recommended that you enable CONFIG_DEBUG_LL in the linux kernel configuration.
+This may print out more information after "booting the kernel" is seen and may
+help determine where the kernel is failing. Even if you are unable to make any
+further progress from here, providing as much information as you can will help
+others determine where the problem is.
+
+You can also try enabling 'earlyconsole' or earlyprintk to troubleshoot this.
+
+------------------------------------------------------------------------------------------------------------------------------
+ No console messages after earlycon getting disabled
+------------------------------------------------------------------------------------------------------------------------------
+
+If you manage to enable earlyconsole/earlyprintk. Also, the console logs appear
+after the earlyconsole is enabled. But once kernel tries to initialize the
+serial driver after disabling the earlycon, no messages appear.
+
+Solution: In this case, try to see if the driver is initialized properly
+in the 'probe'.
 
 Uncompressing Linux... done, booting the kernel.
 ...
@@ -376,11 +477,13 @@ Uncompressing Linux... done, booting the kernel.
 [    0.657486] gsbi 16200000.gsbi: GSBI port protocol: 6 crci: 0
 [    0.663620] msm_serial 16240000.serial: msm_serial: detected port #0
 [    0.669430] msm_serial 16240000.serial: uartclk = 1843200
-[    0.674978] 16240000.serial: ttyMSM0 at MMIO 0x16240000 (irq = 214, base_baud = 115200) �            &�ɚ�¢��j͵}�굕�ɥ����齹�ͽ��������сz������Ɂ�j��h        &�Ժ�����꽹�ͽ�������5M5��ځ*������5R�ڂrͅͅd
+[    0.674978] 16240000.serial: ttyMSM0 at MMIO 0x16240000 (irq = 214, base_baud = 115200)
+ �            &�ɚ�¢��j͵}�굕�ɥ����齹�ͽ��������сz������Ɂ�j��h        &�Ժ�����꽹�ͽ�������5M5��ځ*������5R�ڂrͅͅd
 
-
-Solution: Disable earlycon and troubleshoot tty driver and probe function/device tree node details.
-
+Solution:
+Disable earlycon and troubleshoot tty driver and probe function/device tree
+node details. The messages may also be coming during the transition from
+earlyconsole to serial driver.
 
 ------------------------------------------------------------------------------------------------------------------------------
 The earlyconsole logs stops appearing after a while
@@ -388,7 +491,10 @@ The earlyconsole logs stops appearing after a while
 This could happen if any of the drivers get crashed.
 To see where the execution is broken, enable 'initcall_debug' in kernel
 
-Passing the option "initcall_debug" on the kernel command line will cause timing information to be printed to the console for each initcall. initcalls are used to initialize statically linked kernel drivers and subsystems and contribute a significant amount of time to the Linux boot process. The output looks like this:
+Passing the option "initcall_debug" on the kernel command line will cause timing
+information to be printed to the console for each initcall. initcalls are used
+to initialize statically linked kernel drivers and subsystems and contribute a
+significant amount of time to the Linux boot process. The output looks like this:
 
     calling ipc_init+0x0/0x28 @ 1
     msgmni has been set to 42
@@ -415,13 +521,15 @@ http://elinux.org/Initcall_Debug
  Console tty driver works but no shell appears
 ------------------------------------------------------------------------------------------------------------------------------
 
-We disabled earlycon now and the tty device driver successfully outputs messages into the console device.
-But the messages stops after a while and no shell appears.
+We disabled earlycon now and the tty device driver successfully outputs
+messages into the console device. But the messages stops after a while and no
+shell appears.
 
 This could happen if the driver works only in poll mode and not in interrupt mode.
 
-Solution: If using device tree node, try to see the phandle of the interrupt-parent of the serial device.
-Here it is 'intc'. This is the node name representing the interrupt controller hardware.
+Solution: If using device tree node, try to see the phandle of the
+interrupt-parent of the serial device. Here it is 'intc'. This is the node name
+representing the interrupt controller hardware.
 
 interrupt-parent = <&intc>;
 
@@ -527,6 +635,6 @@ Reference
 ------------
 
 http://www.arm.linux.org.uk
-
+http://processors.wiki.ti.com/index.php/Kernel_-_Common_Problems_Booting_Linux
 
 
