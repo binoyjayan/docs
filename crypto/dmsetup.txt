@@ -92,7 +92,9 @@ The striped Mapping Target
 --------------------------------------------------------------------------------------------
 The crypt Mapping Target
 --------------------------------------------------------------------------------------------
-<start> <length> crypt cipher key IV-offset device offset
+
+<start> <length> crypt cipher        key                               IV-offset  device      offset
+0       2097152  crypt aes-cbc-plain 0123456789abcdef0123456789abcdef  0          /dev/loop0  0
 
 Out of the above the following only is passed to device mapper target (dm-crypt)
 
