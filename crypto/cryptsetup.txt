@@ -7,54 +7,63 @@ cryptsetup
 Create an encrypted Luks device, mount, close - One time only
 --------------------------------------------------------------------------------------------
 
-dd if=/dev/zero of=cryptfile bs=1M count=500
-sudo losetup /dev/loop0 cryptfile
+dd if=/dev/zero of=HDB bs=1M count=500
+sudo losetup /dev/loop0 HDB
 sudo losetup -a
 badblocks -s -w -t random -v /dev/loop0
 sudo modprobe aes
 sudo cryptsetup -y luksFormat -c aes -s 256 /dev/loop0
-sudo cryptsetup luksOpen /dev/loop0 crypt_fun		<<-- Create dm device 'crypt_fun'
-sudo mkfs.ext4 -j /dev/mapper/crypt_fun
-sudo e2fsck -f /dev/mapper/crypt_fun
-sudo cryptsetup luksClose crypt_fun
+sudo cryptsetup luksOpen /dev/loop0 crdev
+sudo mkfs.ext4 -j /dev/mapper/crdev
+sudo e2fsck -f /dev/mapper/crdev
+sudo cryptsetup luksClose crdev
 sudo losetup -d /dev/loop0
 
 --------------------------------------------------------------------------------------------
 Open Luks and mount and then umount and close - Each time 
 --------------------------------------------------------------------------------------------
-sudo losetup /dev/loop0 cryptfile
-sudo cryptsetup luksOpen /dev/loop0 crypt_fun
-sudo mount -t ext4 /dev/mapper/crypt_fun mnt
+sudo losetup /dev/loop0 HDB
+sudo cryptsetup luksOpen /dev/loop0 crdev
+sudo mount -t ext4 /dev/mapper/crdev mnt
 
 <-- Use the encrypted file system -->
 
 sudo umount mnt
-sudo cryptsetup luksClose crypt_fun
+sudo cryptsetup luksClose crdev
 sudo losetup -d /dev/loop0
 
 --------------------------------------------------------------------------------------------
 Close the device and mapping
 --------------------------------------------------------------------------------------------
-sudo cryptsetup luksClose crypt_fun
+sudo cryptsetup luksClose crdev
 sudo losetup -d /dev/loop0
+
+--------------------------------------------------------------------------------------------
+Suppress KERN_INFO, pr_info() etc
+--------------------------------------------------------------------------------------------
+echo "4 1 1 7" > /proc/sys/kernel/printk
+echo "8 8 8 8" > /proc/sys/kernel/printk
+echo "7 7 7 7" > /proc/sys/kernel/printk
 
 --------------------------------------------------------------------------------------------
 Create encrypted volume on sdb
 cipher[:keycount]-mode-iv:ivopts
 --------------------------------------------------------------------------------------------
 
+# dd if=/dev/zero of=HDB.ext4 bs=1M count=500
 # dd if=/dev/zero of=/dev/sdb bs=1M count=50
 # cryptsetup -y -c aes-ecb-essiv:sha256 -s 256 --hash sha256 luksFormat /dev/sdb
 # cryptsetup -y -c aes-xts-plain64:sha256 -s 256 --hash sha256 luksFormat /dev/sdb
 # cryptsetup -y luksFormat -c aes -s 256 /dev/sdb
-# dd of=/dev/mapper/crypt_fun if=/dev/zero bs=512 count=1
+# dd of=/dev/mapper/crdev if=/dev/zero bs=512 count=1
 
-# One time setup - Format with one of the following:
+# One time setup - Format the device compatible with LUKS.
+# Choose one of the following IV generation alorithms at a time
+cryptsetup -y -c aes-cbc-null -s 256 --hash sha256 luksFormat /dev/sdb
 cryptsetup -y -c aes-cbc-plain -s 256 --hash sha256 luksFormat /dev/sdb
 cryptsetup -y -c aes-cbc-plain64 -s 256 --hash sha256 luksFormat /dev/sdb
 cryptsetup -y -c aes-cbc-essiv:sha256 -s 256 --hash sha256 luksFormat /dev/sdb
 cryptsetup -y -c aes-cbc-benbi -s 256 --hash sha256 luksFormat /dev/sdb
-cryptsetup -y -c aes-cbc-null -s 256 --hash sha256 luksFormat /dev/sdb
 cryptsetup -y -c aes-cbc-lmk -s 256 --hash sha256 luksFormat /dev/sdb
 cryptsetup -y -c aes-cbc-tcw -s 256 --hash sha256 luksFormat /dev/sdb
 
@@ -67,48 +76,74 @@ cryptsetup -y -c aes:2-cbc-lmk -s 256 --hash sha256 luksFormat /dev/sdb
 
 
 cryptsetup luksDump --dump-master-key /dev/sdb
+cryptsetup luksAddKey /dev/sdb
 
 
-
-cryptsetup luksOpen /dev/sdb crypt_fun
+cryptsetup luksOpen /dev/sdb crdev
 dmsetup table --showkeys
-cryptsetup luksSuspend crypt_fun
+cryptsetup luksSuspend crdev
 dmsetup table --showkeys
 
-dmsetup message crypt_fun 0 key wipe
+dmsetup message crdev 0 key wipe
+dmsetup status crdev
 dmsetup table --showkeys
-dmsetup message crypt_fun 0 key set d862e9679971108b817e1dd236386f443632759ead2e9ae393a448cd238af5e4
-dmsetup message crypt_fun 0 key set 1234567890123456789012345678901234567890123456789012345678901234
+dmsetup message crdev 0 key set d862e9679971108b817e1dd236386f443632759ead2e9ae393a448cd238af5e4
+dmsetup message crdev 0 key set 1234567890123456789012345678901234567890123456789012345678901234
 
-cryptsetup luksResume crypt_fun
+cryptsetup luksResume crdev
 
+echo "111111111122222222223333333333444444444455555555556666666666000" > /dev/mapper/crdev
 ls -l data.txt
-cat data.txt > /dev/mapper/crypt_fun
+cat data.txt > /dev/mapper/crdev
 
-dd if=/dev/mapper/crypt_fun of=out.txt bs=1 count=8064
+# Read back bytes
+dd if=/dev/mapper/crdev bs=1 count=64
+dd if=/dev/mapper/crdev of=out.txt bs=1 count=64
+dd if=/dev/mapper/crdev of=out.txt bs=1 count=9640
+
+
+cyptlen '127488' for ?
 
 # Test file system
-mkfs.ext4 -j /dev/mapper/crypt_fun
-e2fsck -f /dev/mapper/crypt_fun
+mkfs.ext4 -j /dev/mapper/crdev
+e2fsck -f /dev/mapper/crdev
 
-mount -t ext4 /dev/mapper/crypt_fun /mnt
+mount -t ext4 /dev/mapper/crdev /mnt
 
 
 <-- perform file operations in the encrypted file system -->
 cp *.txt /mnt
 
 umount /mnt
-cryptsetup luksClose crypt_fun
+cryptsetup luksClose crdev
 cryptsetup luksRemoveKey /dev/sdb
 
+
+--------------------------------------------------------------------------------------------
+FIO Tests
+--------------------------------------------------------------------------------------------
+
+1. Fio description and notes
+--direct=1:	1 means that fio will not use buffered I/O for the test.
+--iodepth=1:	The iodepth option defines the amount of IO units that will continue to hammer a file with requests during the test
+--rw=randread:	The access method.
+--bs=1M:	This options determines the block size for the I/O units used during the test.
+--size=2G:	File size.
+--size=448M:	File size.
+--numjobs=1:	Test thread number.
+
+1. Random read 448M with no encryption
+fio --filename=/dev/sdb --direct=1 --iodepth=1 --rw=randread --bs=1M --size=448M --group_reporting --numjobs=1 --name=test_randr
+
+2. Random read 448M with encryption
+fio --filename=/dev/mapper/crdev --direct=1 --iodepth=1 --rw=randread --bs=1M --size=448M --group_reporting --numjobs=1 --name=test_randr
 
 --------------------------------------------------------------------------------------------
 Example
 --------------------------------------------------------------------------------------------
 
-
 # cryptsetup -y -c aes-ecb-essiv:sha256 -s 256 --hash sha256 luksFormat /dev/sdb
-# cryptsetup luksOpen /dev/sdb crypt_fun
+# cryptsetup luksOpen /dev/sdb crdev
 Enter passphrase for /dev/sdb: 
 [  169.195444] BJ:crypt_ctr:1769: argv[0]=aes-cbc-essiv:sha256
 [  169.195938] BJ:crypt_ctr:1769: argv[1]=721c374b4e55e7895540c4d8c4c051abfb8fd5df423c6693d8567b28343f4d72
@@ -129,10 +164,10 @@ Enter passphrase for /dev/sdb:
 [  169.201049] BJ:crypt_ctr_cipher:1731: ivopts    =sha256
 # 
 # dmsetup table --showkeys 
-crypt_fun: 0 1019904 crypt aes-cbc-essiv:sha256 721c374b4e55e7895540c4d8c4c051abfb8fd5df423c6693d8567b28343f4d72 0 8:16 4096
+crdev: 0 1019904 crypt aes-cbc-essiv:sha256 721c374b4e55e7895540c4d8c4c051abfb8fd5df423c6693d8567b28343f4d72 0 8:16 4096
 # 
 # 
-crypt_fun: <start> <length> crypt cipher key IV-offset device offset
+crdev: <start> <length> crypt cipher key IV-offset device offset
 
 cryptsetup luksDump --dump-master-key /dev/sdb
 
@@ -163,7 +198,7 @@ Forgot key after mounting fs
   sudo dmsetup table --showkeys 
 
 <output:>
-  crypt_fun: 0 1019904 crypt aes-cbc-plain 92c5f589373259d48dbb6e7b3b1b4cf5e0ec2d549f8c51fb118be48f60663207 0 7:0 4096
+  crdev: 0 1019904 crypt aes-cbc-plain 92c5f589373259d48dbb6e7b3b1b4cf5e0ec2d549f8c51fb118be48f60663207 0 7:0 4096
 
 NB: This is the same as what you get when you run luksDump with '--dump-master-key' option
 
