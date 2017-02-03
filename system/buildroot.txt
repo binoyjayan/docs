@@ -1,0 +1,58 @@
+How to build rootfs
+====================
+
+http://www.osadl.org/Use-BuildRoot-to-create-a-Linux-image-fo.buildroot-qemu.0.html
+
+Download:
+---------
+https://buildroot.uclibc.org/download.html       [tar]
+tar xjf tar/buildroot-2016.05.tar.bz2
+cd buildroot-2016.05
+
+git clone git://git.buildroot.net/buildroot      [Faster]
+git clone https://git.buildroot.net/buildroot    [If behind firewall]
+
+
+Configure
+---------
+make menuconfig
+
+1. Choose Target as arm/x86
+2. Choose toolchain if needed
+3. Select packages
+4. Choose glibc instead of clibc if preferable
+5. Choose output image format as ext2/4
+
+Essential packages and options
+------------------------------
+
+Change System hostname
+Change default shell to bash
+strace
+glibc
+bash
+vim
+less
+e2fsprogs
+c++ support
+fs - ext2/ext4
+bonnie++
+fio
+cryptsetup
+
+
+Build
+-----
+make
+
+Output
+-------
+
+output/images/rootfs.ext2
+output/images/rootfs.tar
+
+If additional files needs to be added to rootfs,
+the script 'rbld' may be used.
+
+
+

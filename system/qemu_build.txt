@@ -1,0 +1,57 @@
+
+Build Qemu
+===========
+
+Download locations
+------------------
+
+git clone git://git.qemu.org/qemu.git                       - Mainline - 
+git clone git://git.linaro.org/qemu/qemu-linaro.git         - Latest for ARM platforms -
+
+
+Download and configure
+-----------------------
+
+mkdir QEMU
+cd QEMU
+mkdir qemu_install
+git clone git://git.qemu.org/qemu.git                       - OR- 
+git clone git://git.linaro.org/qemu/qemu-linaro.git
+cd qemu
+mkdir build
+cd build
+
+Partial build (various arm targets):
+-------------------------------------
+../configure --help
+../configure --prefix=../../install --target-list=aarch64-softmmu                     (ARM64)
+../configure --prefix=../../install --target-list=arm-softmmu,arm-linux-user          (ARM32,USER)
+make -j 4 && make install
+
+Full build:
+--------------
+../configure --prefix=../../install
+make -j 4 && make install
+
+Find binary output in '../../install'
+
+Options:
+---------
+
+--target-list=LIST       Set target list (default: build everything)
+--prefix=PREFIX          Output location for 'make install'
+
+Reference:
+http://www.cnx-software.com/2012/03/08/how-to-build-qemu-system-arm-in-linux/
+
+
+Test your qemu
+---------------
+
+wget http://people.linaro.org/~alex.bennee/images/aarch64-linux-3.15rc2-buildroot.img
+./aarch64-softmmu/qemu-system-aarch64 -machine virt -cpu cortex-a57 -machine type=virt -nographic -smp 1 -m 2048 -kernel aarch64-linux-3.15rc2-buildroot.img  --append "console=ttyAMA0"
+
+
+
+
+
