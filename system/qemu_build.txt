@@ -24,9 +24,10 @@ cd build
 Partial build (various arm targets):
 -------------------------------------
 ../configure --help
-../configure --prefix=../../install --target-list=aarch64-softmmu                     (ARM64)
-../configure --prefix=../../install --target-list=arm-softmmu,arm-linux-user          (ARM32,USER)
-make -j 4 && make install
+../configure --prefix=`readlink -m ../../install` --target-list=aarch64-softmmu                     (ARM64)
+../configure --prefix=`readlink -m ../../install` --target-list=arm-softmmu,arm-linux-user          (ARM32,USER)
+make -j 4
+make install
 
 Full build:
 --------------
