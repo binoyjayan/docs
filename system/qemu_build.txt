@@ -14,7 +14,7 @@ Download and configure
 
 mkdir QEMU
 cd QEMU
-mkdir qemu_install
+mkdir install
 git clone git://git.qemu.org/qemu.git                       - OR- 
 git clone git://git.linaro.org/qemu/qemu-linaro.git
 cd qemu
