@@ -145,24 +145,7 @@ Example
 # cryptsetup -y -c aes-ecb-essiv:sha256 -s 256 --hash sha256 luksFormat /dev/sdb
 # cryptsetup luksOpen /dev/sdb crdev
 Enter passphrase for /dev/sdb: 
-[  169.195444] BJ:crypt_ctr:1769: argv[0]=aes-cbc-essiv:sha256
-[  169.195938] BJ:crypt_ctr:1769: argv[1]=721c374b4e55e7895540c4d8c4c051abfb8fd5df423c6693d8567b28343f4d72
-[  169.196818] BJ:crypt_ctr:1769: argv[2]=0
-[  169.197121] BJ:crypt_ctr:1769: argv[3]=/dev/sdb
-[  169.197394] BJ:crypt_ctr:1769: argv[4]=4096
-[  169.197636] BJ:crypt_ctr_cipher:1591: tmp at beginning:aes-cbc-essiv:sha256
-[  169.198070] BJ:crypt_ctr_cipher:1593: tmp after cipher:cbc-essiv:sha256
-[  169.198412] BJ:crypt_ctr_cipher:1611: tmp after chainmode:essiv:sha256
-[  169.198730] BJ:crypt_ctr_cipher:1613: tmp after ivopts:(null)
-[  169.199065] BJ:crypt_alloc_tfms:1463: tfms[0]=crypto_alloc_skcipher(cbc(aes))
-[  169.199418] BJ:crypt_ctr_cipher:1646: cipher_api=cbc(aes), ret=0
-[  169.199714] BJ:crypt_ctr_cipher:1656: IV size before=16
-[  169.199979] BJ:crypt_ctr_cipher:1727: cipher    =aes
-[  169.200268] BJ:crypt_ctr_cipher:1728: chainmode =cbc
-[  169.200516] BJ:crypt_ctr_cipher:1729: ivmode    =essiv
-[  169.200769] BJ:crypt_ctr_cipher:1730: IV_size   =16
-[  169.201049] BJ:crypt_ctr_cipher:1731: ivopts    =sha256
-# 
+
 # dmsetup table --showkeys 
 crdev: 0 1019904 crypt aes-cbc-essiv:sha256 721c374b4e55e7895540c4d8c4c051abfb8fd5df423c6693d8567b28343f4d72 0 8:16 4096
 # 
