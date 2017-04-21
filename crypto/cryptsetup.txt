@@ -104,6 +104,10 @@ dd if=/dev/mapper/crdev of=out.txt bs=1 count=9640
 
 cyptlen '127488' for ?
 
+# DD Test
+dd if=/dev/mapper/crdev of=/dev/null bs=1M count=1024 iflag=direct
+dd of=/dev/mapper/crdev if=/dev/zero bs=1M count=1024 oflag=direct
+
 # Test file system
 mkfs.ext4 -j /dev/mapper/crdev
 e2fsck -f /dev/mapper/crdev
@@ -224,7 +228,6 @@ https://www.qualcomm.com/products/snapdragon/security
 https://www.qualcomm.com/news/snapdragon/2014/11/07/cryptographic-module-snapdragon-805-fips-140-2-certified
 http://nelenkov.blogspot.com/2014/10/revisiting-android-disk-encryption.html
 https://www.tarsnap.com/scrypt.html
-
 
 
 

@@ -1,0 +1,96 @@
+
+Update ~/.gnupg/gpg.conf
+------------------------
+
+We need to update GnuPG to use SHA2 in preference to SHA1. So add at the end of the file:
+
+personal-digest-preferences SHA256
+cert-digest-algo SHA256
+default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
+
+
+Create key
+----------
+
+gpg --gen-key
+
+1. Select 1 - RSA and RSA (default)
+2. Type key size as 4096
+3. Choose validity of key as 3 years (3y)
+4. Type name and email
+5. Type password. fb 123
+6. Type random bytes for entropy
+
+
+saksgpg: /home/binoy/.gnupg/trustdb.gpg: trustdb created
+gpg: key 0E86BDAE marked as ultimately trusted
+public and secret key created and signed.
+
+gpg: checking the trustdb
+gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: next trustdb check due at 2020-04-09
+pub   4096R/0E86BDAE 2017-04-10 [expires: 2020-04-09]
+      Key fingerprint = C874 1ED9 2117 66FB 4B3A  2834 5185 9CC6 0E86 BDAE
+uid                  Binoy Jayan <binoy.jayan@***.org>
+sub   4096R/D98D3553 2017-04-10 [expires: 2020-04-09]
+
+Add other UID
+-------------
+
+If you need to add more than one email address to your key:
+
+gpg --edit-key 'C8741ED9211766FB4B3A283451859CC60E86BDAE'
+
+ - OR -
+
+gpg --edit-key 'binoy.jayan@***.org'
+
+1. adduid
+2. save
+
+Set primary UID
+----------------
+
+(Only needed if you've added more than one UID as above)
+
+1. gpg --edit-key 'C8741ED9211766FB4B3A283451859CC60E86BDAE'
+
+      - OR -
+
+   gpg --edit-key 'binoy.jayan@***.org'
+
+2. uid 2
+3. primary
+4. save
+
+Export public key
+-----------------
+
+gpg --armor --export binoy.jayan@***.org > mykey.asc
+gpg --armor --export 0E86BDAE > mykey.asc
+gpg --armor --export > mykey.asc
+
+Send new key to key server
+--------------------------
+
+gpg --list-keys
+
+gpg --keyserver pgp.mit.edu --send-key 0E86BDAE
+gpg --keyserver wwwkeys.pgp.net --send-key 'C8741ED9211766FB4B3A283451859CC60E86BDAE'
+gpg --keyserver pgp.surfnet.nl --send-key 0E86BDAE
+gpg --keyserver wwwkeys.pgp.net --send-key 0E86BDAE
+
+ - OR -  
+
+Goto the website in browser and add the key manually.
+
+
+Reference
+----------
+
+https://docs.google.com/document/d/1Tffq_Hg0ZGov_gC38QwuMWnm-9LUWSOXKn4y_c2J1Jg/edit#
+https://keyring.debian.org/creating-key.html
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Step_by_Step_Guide/s1-gnupg-export.html
+
+
