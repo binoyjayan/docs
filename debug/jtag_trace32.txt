@@ -1,0 +1,316 @@
+
+
+JTAG and TRACE32
+================
+
+JTAG is the acronym for Joint Test Action Group, the name of the group of
+people that developed the IEEE 1149.1 standard. JTAG is the name used for the
+IEEE 1149.1 standard entitled Standard Test Access Port and Boundary Scan
+Architecture for test access ports (TAP) used for testing printed circuit
+boards (PCB) using boundary scan.
+
+For most embedded CPU architecture implementations, the JTAG port is used by
+the debugger to interface the chip for debugging one or more cores. The normal
+user will probably not need to know details of the JTAG implementation unless
+there is a need to debug several daisy-chained JTAG TAP controllers or to
+access special test functions or configurations via JTAG that are not
+implemented in the debugger software.
+
+For debugging any JTAG communication the use of a logic analyzer such as the
+TRACE32 PowerProbe is recommended.
+
+The functionality usually offered by JTAG is Debug Access and Boundary Scan:
+• Debug Access is used by debugger tools to access the internals of a chip
+  making its resources and functionality available and modifiable,
+  e.g. registers, memories and the system state.
+• Boundary Scan is used by hardware test tools to test the physical connection
+  of a device, e.g. on a PCB. Although this is usually not the task of a
+  debugger tool the TRACE32 debugger offers mechanisms to access the JTAG TAP
+  in a generic way, e.g. to perform boundary scan using a PRACTICE script or
+  a custom application. All the signals between the device's core logic and
+  the 'pins' are intercepted by a serial scan path known as the
+  Boundary Scan Register (BSR).
+
+JTAG is defined as a serial communication protocol and a state machine
+accessible via a TAP. The DTAB (Debug and Test Access Block) is implemented on
+the target chip as a "passive" device that never sends  data without request.
+
+The DTAB mainly consists of the following:
+ • The TAP (Test Access Port) with its physical connections (signals) to the
+   external world.
+ • The TAP Controller (a 16-state state machine).
+ • One IR (Instruction Register) and several DRs (Data Registers).
+ • The Debug Bus for communication with the on-chip debug logic
+
+The TAP defines the interface between the DTAB and the debug tool. The JTAG
+Port is the physical connector on the PCB where the debug cable is plugged.
+The IEEE standard defines the following TAP signals, used for the serial
+communication and driving the TAP controller (JTAG state machine):
+
+Protocol - Interface Signals - Daisy-chained JTAG (IEEE 1149.1)
+----------------------------------------------------------------
+
+The JTAG interface, collectively known as a Test Access Port, or TAP,
+uses the following signals to support the operation of boundary scan.
+
+TCK (Test Clock)       – this signal synchronizes the internal state
+                         machine operations.
+TMS (Test Mode Select) – Controls the TAP controller state transitions.
+                         This signal is sampled at the rising edge of TCK to
+                         determine the next state.
+TDI (Test Data In)     – Serial data from debugger to target.
+                         This signal represents the data shifted into the
+                         device’s test or programming logic. It is sampled at
+                         the rising edge of TCK when the internal state machine
+                         is in the correct state.
+TDO (Test Data Out)    – Serial data from target to debugger.
+                         This signal represents the data shifted out of the
+                         device’s test or programming logic and is valid on
+                         the falling edge of TCK when the internal state
+                         machine is in the correct state.
+TRST (Test Reset)      – This is an optional pin which, when available,
+                         can reset the TAP controller’s state machine.
+
+
+Registers
+---------
+
+There are two types of registers associated with boundary scan. Each compliant
+device has one instruction register (IR) and two or more data registers (DR).
+The functionality of the DTAB is accessible via different instructions stuffed
+into the IR. By loading an instruction, the corresponding DR is selected for
+access, providing and/or accepting data according to the selected instruction.
+Most commonly, the content of the instruction register will define to which of
+the data registers signals should be passed.
+
+Instruction Register – the instruction register holds the current instruction.
+Its content is used by the TAP controller to decide what to do with signals
+that are received. 
+
+Data Registers – there are three primary data registers,
+ - The Boundary Scan Register (BSR)
+ - The BYPASS register
+ - The IDCODES register
+
+Other data registers may be present, but they are not required as part of the
+JTAG standard.
+
+BSR     – This is the main testing data register. It is used to move data to
+          and from the I/O pins of a device.
+BYPASS  – This is a single-bit register that passes information from TDI to TDO
+          It allows other devices in a circuit to be tested with minimal
+          overhead. Mandatory for use in daisy-chained multi-core config.
+IDCODES – This register contains the ID code and revision number for the device.
+          This information allows the device to be linked to its
+          Boundary Scan Description Language (BSDL) file. The file contains
+          details of the Boundary Scan configuration for the device.
+
+The width of the IR is not specified by the JTAG standard but needs to be the
+same for all instructions of a specific device. Since the DR is selected
+according to the loaded instruction the DR width is variable.
+
+Daily chaining
+--------------
+Daily chained list of cores help make use of a single JTAG connector for all the
+cores. Instruction from JTAG interface to ignore an ATTACH to a different core.
+Each core has its own TAP controller.
+
+Test Access Port (TAP) Controller
+---------------------------------
+The TAP controller, a state machine whose transitions are controlled by the
+TMS signal, controls the behaviour of the JTAG system. It is a 16-state state
+machine as defined by the IEEE standard.
+
+All states have two exits, so all transitions can be controlled by the single
+TMS signal sampled on TCK. The two main paths allow for setting or retrieving
+information from either a data register or the instruction register of the
+device. The data register operated on (e.g. BSR, IDCODES, BYPASS) depends
+on the value loaded into the instruction register.
+
+For more detail on each state, refer to the IEEE 1149.1 Standard JTAG document.
+
+The states are:
+
+• Test Logic Reset
+• Run-Test / Idle
+• Select-DR / Scan       • Select-IR / Scan
+• Capure-DR              • Capure-IR
+• Shift-DR               • Shift-IR
+• Exit1-DR               • Exit1-IR
+• Pause-DR               • Pause-IR
+• Exit2-DR               • Exit2-IR
+• Update-DR              • Update-IR
+
+Each state of the TAP controller can be reached by a sequence of bits
+transmitted via the TMS line depending on the current state. Normally a
+DR or IR shift access starts from the pause parking position, changes to
+one of the shift states where data is transmitted and ends up in the
+pause parking position again.
+
+Pause parking position: State the TAP controller holds while
+waiting for the next shift operation.
+
+The following states of the TAP controller are of importance:
+• Test Logic Reset sets the Instruction Register to its reset value
+  (IDCODE or BYPASS). This state can be reached from any other state by
+  shifting five times "1" on TMS. Some CPUs do also reset the DTAB and/or
+  the on-chip debug logic when this state is entered. As a result an active
+  debug connection might get lost, if this state is driven by a PRACTICE script
+  or a custom application.
+• Run-Test/ Idle and Select DR-Scan are used by most debuggers as pause parking
+  position.
+• In the Shift-IR state the debug tool shifts an instruction into the
+  Instruction Register. The instruction is activated once the TAP controller
+  reaches the Update-IR state.
+• In the Shift-DR state the debug tool shifts data to/from the Data Register
+  selected by the currently loaded instruction.
+
+Debug Bus
+---------
+
+The debug functionality is usually not implemented in the DTAB but realized as
+a separate IP block. Thus the implementation of the Debug Bus and the on-chip
+debug logic (Debug System) is device specific. On some CPUs the access to the
+Debug Bus is enabled by a dedicated JTAG instruction. Communication is then
+completely handled via a dedicated Data Register. The DTAB just enables
+accesses to the on-chip debug logic by using the DR path.
+
+Other on-chip components may be accessible with their own JTAG instruction,
+e.g. ETM/ ETB, MCDS or an auxiliary processor.
+However this is implementation specific.
+
+Communication with the DTAB
+---------------------------
+The debug tool communicates with the DTAB by reading and/or writing IRs and DRs.
+The debug tool first drives the TAP Controller to the Shift-IR state to write
+the appropriate instruction to IR. Then it drives to the Shift-DR state where
+the DR can be read or written. Once the Update-DR state is reached, the
+processing of DR is started, e.g. the data contained in DR is forwarded to the
+on-chip debug system.
+
+Reading or writing the IR or DR is performed bitwise from LSB to MSB. With
+every bit shifted into the TAP controller via TDI, the contents of DR is
+rightshifted one bit, providing the LSB on TDO.
+
+Debug Access Port(DAP) and Memory Access Port (MAP)
+----------------------------------------------------
+• DAP help reduce the number of devices on a Daisy Chain
+  and helps with performance
+• DAP categorizes devices and puts them in a the same daisy chain slot
+• Coresight is an example of a DAP contoller
+• QDSS is a modified version of the same
+
++------------------------+
+|  DAP                   |
++------------------------+
+|  MAP                   |
++------------------------+
+| JTAG Access port       |
+|                        |
+|                        |
++------------------------+
+
+
+DAP (Debug Access Port)
+------------------------
+
+Help reduce number of devices on  the scan chain; it categorizes the devices.
+
+Coresight
+----------
+ - Implementation of DAP Controller
+ - Qualcomm modified it to make QDSS
+
+
+MAP (Memory Access Port)
+-------------------------
+ - Helps write to system memory directly
+
+To note
+--------
+- Non-ARM cores cannot be put in DAP
+- CPU communicates with JTAG in debug mode
+- Each node in scan chain has an IDCODE
+
+JTAG Clock
+-----------
+ - Use clock rate of around 1/5th of CPU frequency
+ - If attach fails with this rate, try a lower rate.
+
+RTCK (Return Clock)
+--------------------
+ - Dynamic clocking when CPU goes into low power mode
+ - Acts as a feedback
+
+
+TRST - TAP Reset
+SRST - System Reset
+
+NoDebug
+--------
+ - Disconnect when CPU is running
+ - Safer to remove JTAG from the target
+
+
+data.load.elf
+-------------
+
+d.l.elf vmlinux /nocode /strippart "/home/user/linux" /linux
+
+Hardware breakpoint
+--------------------
+
+Useful when memory is readonly and we cannot use software breakpoints
+
+Access class
+-------------
+
+Used for restricted access
+
+a: --> Absolute addresses (Physical)
+P: --> Program memory (default)
+D: --> Data memory
+Z: --> Trustzone (secure mode). This class should be used to access secure memory
+
+mmu.dump --> Dump page table at the current access level
+
+mmu.dump KernelPageTable <address>
+
+Examples:
+
+a.dump a:0x80008000
+d.dump z:0xFFFF....
+
+Runtime access to memory
+-------------------------
+Usually the memory is not accessible when the system is running.
+To access memory during this, use this access class.
+
+d.dump E:0x<address>
+
+NB: Here the dump window is not greyed out
+
+View peripherals
+-----------------
+
+per.view
+Access class : 'PER:'
+
+d.dump PER:0x<address>
+
+http://qwiki.qualcomm.com/jtag/Lauterbach_Training
+http://videos.qualcomm.com/video/4128
+
+
+
+
+
+
+
+
+
+
+
+
+
+
