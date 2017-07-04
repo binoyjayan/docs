@@ -1,0 +1,35 @@
+
+Virtio: An I/O virtualization framework for Linux
+==================================================
+
+ - virtio is an abstraction layer over devices in a paravirtualized hypervisor
+ - The design allows the hypervisor to export a common set of emulated devices
+ - Make the interfaces available through a common application programming interface
+ - The guests implement a common set of interfaces
+
+Virtio architecture
+--------------------
+ - Front end drivers    - Implemented in the guest operating system
+ - Back-end drivers     - Implemented in the hypervisor
+ - Two layers           - Two layers to support guest-to-hypervisor communication
+ - virtio               - Top level virtual queue interface
+ - Virtual queues       - Implemented as rings to traverse the guest-to-hypervisor transition
+ - struct virtio_driver - Defines the upper-level device driver
+ - struct virtio_device - Management data for device having a matching ID
+ - struct virtqueue     - Identifies an optional callback fn,
+                          reference to virtio_device, virtqueue ops
+ - strcut virtqueue_ops - Defines how cmds/data moves between guest and hypervisor
+ - find_vq              - Find virtqueues that associate with a virtio_device
+ - Virtio buffers       - Front-end communicate with back-end drivers through buffers
+ - add_buf              - Enqueue a request on virtqueue
+ - Kick function        - Guest notifies the hypervisor of one or more requests using kick fn
+ - get_buf              - Receive response from  hypervisor
+ - kvm_hypercall        - Indirect hypervisor call for callback functions from another address space
+
+Code and Examples
+-----------------
+
+drivers/net/virtio_net.c   - Virtio network driver
+drivers/block/virtio_blk.c - Virtio block driver
+drivers/virtio             - Virtio interfaces
+
