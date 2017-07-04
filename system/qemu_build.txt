@@ -7,7 +7,7 @@ Download locations
 
 git clone git://git.qemu.org/qemu.git                       - Mainline - 
 git clone git://git.linaro.org/qemu/qemu-linaro.git         - Latest for ARM platforms -
-
+git clone https://git.linaro.org/virtualization/qemu-tz.git --branch qemutz - qemu for tz
 
 Download and configure
 -----------------------
