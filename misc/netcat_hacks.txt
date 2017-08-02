@@ -1,0 +1,51 @@
+
+Netcat hacks
+============
+
+Run commands remotely using netcat
+-----------------------------------
+
+On server:
+nc -l -p 3333 -v -e /bin/bash  
+   - OR -
+nc -l -p 3333 -v -c bash
+
+On client:
+nc remote_host 3333
+
+Transfer files
+---------------
+
+nc -l -p 3333 > out.file
+nc -w 3 remote_host 3333 < a
+
+-w 3 ensures that the connection is torn automatically when no data transfer
+happens for 3 seconds.
+
+Compressed file transfers [tar utility needed at both ends]
+------------------------------------------------------------
+
+nc -l -p 3333 | tar xvfp -
+tar cfp - directory | nc -w 3 remote_host 3333
+
+netcat for chat
+---------------
+
+nc -l -p 3333
+nc -w 1 remote_host 3333
+
+EOF character terminates the chat after 1 second.
+
+Options reference
+-----------------
+-l : Listen mode (used at server)
+-p : port number
+-e : program to exec after connect
+-w : timeout in secs for connects and net reads
+
+
+Installation
+-------------
+
+sudo apt-get install netcat-traditional -y
+sudo update-alternatives --config nc
