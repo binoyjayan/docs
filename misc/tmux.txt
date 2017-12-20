@@ -39,7 +39,7 @@ tmux attach -t work		<<-- Join
 tmux switch -t work2
 tmux list-sessions
 tmux detach (prefix + d)
-tmux new-session -s work -n quic
+tmux new-session -s work -n LA
 
 ------------------------------------------------------------
 Window mgmt
@@ -60,6 +60,8 @@ tmux swap-pane -[UDLR] (prefix + { or })
 tmux select-pane -[UDLR]
 tmux select-pane -t :.+
 
+q  show pane numbers
+x  kill pane
 
 ------------------------------------------------------------
 Helpful tmux commands
