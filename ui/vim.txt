@@ -1,0 +1,116 @@
+
+
+VIM Editor
+==========
+
+Change of modes
+----------------
+
+i          - Go to insert mode at the current character position
+a          - Go to insert mode at the the next character
+I          - Go to insert mode at the beginning of a line
+A          - Go to insert mode at the end of a line
+ESC        - Go back to command mode from insert mode
+ESC ESC    - Go back to command mode from last line mode
+Ctrl [     - Alternative to ESC
+Ctrl [[    - Alternative to ESC ESC
+:          - Go to the last line mode
+
+Navigation
+----------
+hjkl       - Left up down right [apart from arrow keys]
+w          - Move to the next word
+b          - Move to the word before (previous)
+0          - Move to the beginning of the line
+^          - Move to the beginning of the line
+$          - Move to the end of the line
+H          - Move to the top (high) of the window
+M          - Move to the middle of the window
+L          - Move to the bottom of the window
+gg         - Move to the top of the file
+G          - Move to the bottom of the file
+1G         - Move to the first line of the file
+20G        - Move to the 20th line of the file
+Ctrl e     - Scroll the window down
+Ctrl y     - Scroll the window up 
+Ctrl f     - Scroll forward one page 
+Ctrl b     - Scroll backward one page 
+
+Text Manipulation
+-----------------
+
+yy         - yank (copy)  the current line into the vi cliboard
+2yy        - yank (copy)  two lines
+p          - put  (paste) the content of the clipboard in the next line
+P          - put  (paste) the content of the clipboard above the current line
+dd         - delete (cut) the current line and copy it to the vi cliboard
+2dd        - delete (cut) two lines
+dw         - delete word from current position until a space is encountered
+cw         - change the word at the current position
+diw        - delete in word except the space around
+daw        - delete the whole (all) word including the spaces after the word
+ciw        - delete in word and goto insert mode
+caw        - delete the whole(all) word and goto insert mode
+di"        - delete all text within quotes
+di(        - delete all text within parantheses
+da(        - delete all text within parantheses including the parantheses
+yi)        - yank all text inside parantheses
+ya)        - yank all text inside parantheses including the parantheses
+dip        - delete all text in the current paragraph
+
+dt.        - delete till the next dot(.)
+dt"        - delete till the next quote
+dtx        - delete till the next character 'x'. x can be any character.
+
+v          - visually start selecting text to copy [ and then navaigation keys]
+va"        - visually select everything inside the double quotes
+vap        - visually select everything in the current paragraph
+
+D          - Delete until the end of line
+C          - Delete until the end of line and goto insert mode
+o          - Insert new line below and goto insert mode
+O          - Insert new line above and goto insert mode
+.          - Repeats the last command
+
+
+/foo       - Find next occurance of foo
+n          - Find the next occurance of the word previously searched
+N          - Find the previous occurance of this word
+
+Last line mode commands
+-----------------------
+:q                 - Quit      
+:q!                - Quit without saving      
+:w file            - Write to a file
+:wq                - Write and quit
+:o file            - open file
+:set nu            - show line numbers	
+:set nonu          - Do not show line numbers
+:set ignorecase    - To enable case insensitive search
+:set noignorecase  - To enable case sensitive search
+
+:%s/foo/bar/g      - Find each occurrence of 'foo' (in all lines), and replace it with 'bar'
+:s/foo/bar/g       - Find each occurrence of 'foo' (in current line only), and replace it with 'bar'
+:%s/foo/bar/gc     - Change each foo to bar and ask for confirmation
+:%s/\<foo\>/bar/gc - Change only whole words 
+:%s/foo/bar/gci    - Case insensitive search and replace
+:%s/foo\c/bar/gci  - Case insensitive search and replace
+
+
+References
+==========
+
+vimtutor
+
+https://www.youtube.com/watch?v=_NUO4JEtkDw
+https://www.youtube.com/watch?v=5r6yzFEXajQ
+http://www.viemu.com/a_vi_vim_graphical_cheat_sheet_tutorial.html
+https://github.com/mscoutermarsh/dotfiles/blob/master/vimrc
+https://vim-adventures.com
+
+
+
+
+
+
+
