@@ -1,0 +1,146 @@
+
+Filters
+--------------------------------------
+ip.dst == 192.168.0.3
+
+Drop icmp requests
+--------------------------------------
+iptables -I OUTPUT -p icmp -j DROP
+
+OUTPUT : Outbound traffic
+
+Process using port 22
+---------------------------------------
+lsof -i :22
+
+tshark
+---------------------------------------
+tshark -D              : List interfaces
+tshark -i eth0         : Capture on eth0
+tshark -i 1            : Capture on interface numbered by '1'
+tshark -w /tmp/f.pcap  : Capture to f.pcap
+tshark -f filter       : capture filter
+tshark -a              : duration:n filesize:m files:p
+tshark -b              : break files at 'duration:n filesize:m files:p'
+tshark -r f.pcap       : read from file f.pcap
+tshark -T fields       : Mention fields
+tshark -e f            : Mention field f. e.g. 'ip'
+tshark -E fieldsoption : File options for output formatting
+tshark -E header=y     : Enable header line
+tshark -E seperator=,  : Delimiter
+tshark -E quote=d      : Double quoted
+tshark -E occurance=f  : Start from the first packet
+
+NB: The field names / filter names can be obtained from wireshark
+    by clicking on the capture data
+
+
+Network modes
+---------------------------------------
+
+NON-PROMISC     : Only the network card
+Monitor         : Entire network
+Master          : Monitor network on a device which acts as an access point
+ADHOC           : peer to peer
+Mesh            : Multiple peer
+Repeater        : Network card acts as repeater
+
+
+List Change mode
+---------------------------------------
+iwconfig eth0
+iwconfig <interface> mode monitor
+airmon-ng check interface      : start in monitor mode
+airmon-ng start interface      : start in monitor mode
+airmon-ng check mon0           : confirm if in monitor mode
+airmon-ng stop interface       : stop in monitor mode
+
+Remote capture
+---------------------------------------
+
+airodump-ng mon0               : Lists BSSID, ESSID and channel
+airodump-ng mon0 --channel 6 --bssid <bssid> --write out
+
+Decrypting remote wireless traffic
+---------------------------------------
+
+wireshark f.pcap
+Edit ->Preferences->protocol->IEEE 802.11->Enable Decryption
+Edit ->Preferences->protocol->IEEE 802.11->Decryption keys
+                                           key-type:wpa-pwd
+										   key:password:SSID
+
+Format output to csv file
+---------------------------------------
+
+tshark -T fields -e ip.src -e ip.dst -e tcp.dstport -E header=y -E separator=, -E occurrence=f
+ 
+tshark -r input.pcap -T fields -e frame.number
+ -e ip.src -e ip.dst -e tcp.dstport
+ -E header=y -E separator=, -E quote=d -E occurrence=f > out.csv
+
+Exploring packet options
+---------------------------------------
+
+Capture packets when a video stream is running.
+Look for HTTP.response packets with a big size.
+Right click -> Export selected packet bytes
+save it in a file and open in vlc.
+
+nmap - port scan traffic detection
+---------------------------------------
+
+nmap    <ip>
+nmap -O <ip>
+nmap -Pn         : Skip host discovery
+nmap -p 80 <ip>  : Scan only port 80
+nmap -p 80 -Pn   : Reduce packet sending even more
+nmap -p 22,80    : scan multiple ports
+
+ssh tunneling and wireshark
+---------------------------------------
+
+install openssh on both localhost and remote
+
+On local machine:
+mkfifo /tmp/packetcap
+
+On Remote machine:
+Enable 'PermitRootLogin' in /etc/ssh/sshd_config, restart sshd
+tcpdump -i eth0 -w - | ssh user@remote -c arcfour,blowfish-cbc -C -p port "cat - > /tmp/packetcap"
+
+
+On local machine:
+wireshark -> Manage interfaces -> add pipe '/tmp/packetcap'
+
+NB:
+arcfour : Cipher
+-C      : compress
+port    : 22 or similar
+
+Proxy server traffic monitoring on an admin host
+-------------------------------------------------
+Perform ssh tunneling as above with tcpdump running on admin server and
+wireshark running on localhost. In addition to that run a proxy server.
+Install ''squid' for proxy.
+
+Add rules in:
+/etc/squid/squid.conf
+
+Examples:
+
+acl nogo   dstdomain .facebook.com
+acl office src ipaddress
+
+http_access deny office nogo
+
+Firewall rules on proxy server
+
+iptables -I INPUT -p tcp -dport 3128 -j ACCEPT
+iptables -L INPUT 
+
+NB: 3128 is the squid port
+
+On client system, set proxy server address.
+
+
