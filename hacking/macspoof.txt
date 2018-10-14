@@ -1,0 +1,17 @@
+
+Spoof MAC Addresses
+--------------------
+
+First three octets denote the manufacturer.
+Last three octets is the specific device number
+
+macchanger -h      : Help
+macchanger -s eth0 : Show MAC
+macchanger -a eth0 : Set another
+macchanger -p eth0 : Reset to original MAC
+
+Note: Do ifconfig eth0 down/up before/after changing MAC
+
+
+
+

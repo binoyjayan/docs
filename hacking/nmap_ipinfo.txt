@@ -1,0 +1,63 @@
+
+nmap - Port scanning
+=====================
+
+Scan full scan
+---------------
+nmap scanme.nmap.org -vv
+
+Scan the ip addresses in the range '10.0.2.0' - '10.0.2.20'
+-----------------------------------------------------------
+nmap -oG - 10.0.2.0-20 -vv -p 22 | grep Up
+
+-oG Formats output in a grep-able way
+
+Save the scan output
+---------------------
+nmap -oG - 10.0.2.0-20 -vv -p 22 > /tmp/scan.log
+
+Look only for ip addresses
+--------------------------
+grep Up /tmp/scan.log | awk -F " " '{print $2}' > /tmp/hosts.log
+
+Perform full scan for the hosts in the file
+--------------------------------------------
+nmap -iL /tmp/hosts.log
+
+ipinfo using curl
+-----------------
+ping scanme.nmap.org
+64 bytes from scanme.nmap.org (45.33.32.156): icmp_seq=1 ttl=57 time=38.1 ms
+
+curl ipinfo.io/45.33.32.156
+
+{
+  "ip": "45.33.32.156",
+  "hostname": "scanme.nmap.org",
+  "city": "Fremont",
+  "region": "California",
+  "country": "US",
+  "loc": "37.5605,-122.0000",
+  "postal": "94536",
+  "org": "AS63949 Linode, LLC"
+}
+
+nmap script - nsedoc
+--------------------
+Lists various scripts to find vulnerabilities
+
+https://nmap.org/nsedoc
+
+Example:
+nmap --script firewall-bypass <target>
+
+Exploit-db
+--------------------
+https://www.exploit-db.com
+https://www.exploit-db.com/search
+
+searchsploit:
+
+searchsploit afd windows -w -t
+
+

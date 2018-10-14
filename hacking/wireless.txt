@@ -1,0 +1,15 @@
+
+Wireless Network Attacks
+========================
+
+Does internal wireless meet the chip requirements? STOP Warning: A VM
+will show up in Kali as an Ethernet adapter eth0. You can’t do the wireless
+lectures without an external USB wireless card when using a Virtual
+Machine. To be redundant I did not say use the internal wireless card in a Virtual
+Machine. To be able to do the wireless lectures in a VM, do a search for USB
+wireless adapters for Kali Linux. Here are a couple of sites that talk about what to use:
+
+http://www.blackmoreops.com/2014/01/08/recommended-usb-wireless-cards-kali-linux
+http://www.aircrack-ng.org/doku.php?id=compatibility_drivers
+http://www.wirelesshack.org/top-kali-linux-compatible-usb-adapters-dongles-2015.html
+

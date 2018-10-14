@@ -1,0 +1,38 @@
+
+
+Installation and setup
+======================
+
+Install Kali Linux in a virtual machine
+
+Add to /etc/apt/sources.list
+
+deb http://http.kali.org/kali kali-rolling main contrib non-free
+deb-src http://http.kali.org/kali kali-rolling main contrib non-free
+
+deb http://old.kali.org/kali sana main non-free contrib
+deb-src http://old.kali.org/kali sana main non-free contrib
+
+deb http://old.kali.org/kali moto main non-free contrib
+deb-src http://old.kali.org/kali moto main non-free contrib
+
+## Older deprecated repositories - not to be used
+# deb http://http.kali.org/kali kali main non-free contrib
+# deb http://security.kali.org/kali-security kali/updates main contrib non-free
+
+apt-get update
+apt-get upgrade
+
+apt-get install -y dkms linux-headers-$(uname -r)
+
+apt-cache search linux-headers
+apt-cache search linux-image
+
+apt-get install linux-headers-4.9.0-kali1-all-amd64
+apt-get install linux-headers-4.9.0-kali1-amd64
+apt-get install linux-image-4.9.0-kali1-amd64
+
+Download Guest extension iso. Mount it in guest os.
+
+Run 'VBoxLinuxAdditions.run'
+

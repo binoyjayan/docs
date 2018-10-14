@@ -1,0 +1,28 @@
+
+The Tor Project
+================
+
+Download tor
+-------------
+apt-get install tor
+
+https://www.torproject.org
+
+Hidden Wiki
+------------
+
+Search 'Hidden wiki url'
+http://zqktlwi4fecvo6ri.onion/wiki/index.php/Main_Page
+
+Few topics of interest
+-----------------------
+
+Anonymity
+Forum / Boards
+ Intel exchange
+ Hackforum
+ Blackbook
+
+Stock intel exchange
+Wikileaks
+

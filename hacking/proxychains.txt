@@ -1,0 +1,37 @@
+
+Proxy chaining
+================
+
+configuration
+---------------
+/etc/proxychains.conf
+use dynamic_chain
+
+add:
+socks5 127.0.0.1 9050
+
+service tor status
+service tor start
+
+Run:
+
+proxychains firefox www.duckduckgo.com
+
+Search "Check for dns leaks" to ensure anonymity
+
+Add more proxies from internet for more anonymity
+-------------------------------------------------
+Search 'Free socks5 proxies'
+Choose proxies from Polland, Swiss, germany etc
+Add to proxylist in /etc/proxychains.conf
+
+Close all instances of firefox
+Run:
+proxychains firefox <url to open>
+proxychains firefox duckduckgo.com
+
+The working proxies shows 'OK' in the terminal output.
+The proxies which were not reachable shows a 'timeout' in the output.
+Note: We can use any browser other than firefox or any application as well
+
+
