@@ -1,0 +1,25 @@
+
+
+Device Drivers Introduction
+https://linux-kernel-labs.github.io/master/labs/introduction.html
+
+Block Device Drivers:
+https://linux-kernel-labs.github.io/master/labs/block_device_drivers.html
+
+Linux kernel - hupstream
+https://www.youtube.com/watch?v=2tu__ZHC0mI&list=PL7B-WPv0_WpixXBH7h2AJR2P296oFTTIs
+https://www.youtube.com/watch?v=VCOL1TWSs0I&list=PLDGOVJsPOKKAqmGoE-vdD0zq_7O8n8Yxl
+
+DMA:
+https://www.xilinx.com/video/soc/linux-dma-in-device-drivers.html
+
+DMABUF:
+https://www.youtube.com/watch?v=w_1jP1CSfqM
+
+Graphics Stack:
+https://www.youtube.com/watch?v=7ouplNN4yBU
+
+DRM:
+https://www.youtube.com/watch?v=LbDOCJcDRoo
+
+
