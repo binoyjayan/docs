@@ -27,6 +27,9 @@ iptables -A INPUT -s 192.168.0.20 -j ACCEPT
 Delete a rule [ 1 based index ]
 iptables -D INPUT 3
 
+Delete a rule without the index [use D instead of A]
+iptables -D INPUT -s 192.168.0.20 -j ACCEPT
+
 Add same rule at the top of the chain
 iptables -I INPUT -s 192.168.0.20 -j ACCEPT
 
@@ -40,3 +43,25 @@ iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 
 Remove all rules but retain the policy
 iptables --flush
+
+Verbose listing with numeric content and line numbers:
+iptables -L -v -n --line-numbers
+
+List only INPUT rules:
+iptables -L INPUT -v -n
+
+List only Nat table rules:
+iptables -L -t nat
+
+Disable firewall
+service iptables stop
+
+Start firewall again
+service iptables start
+
+Firewall rules database:
+/etc/sysconfig/iptables
+
+Delete all rules in a chain
+iptables -F INPUT
+iptables -F OUTPUT
