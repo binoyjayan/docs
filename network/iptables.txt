@@ -1,0 +1,42 @@
+
+IPTABLES
+===========================================================
+
+NB: iptables would need root privileges
+
+List the rules:
+iptables -L
+
+Policies:
+ INPUT   : Policy for Inbound packets
+ OUTPUT  : Policy for Outbound packets
+ FORWARD : Policy for packets which are forwarded
+
+Change default policy [e.g. change FORWARD policy]:
+iptables -P FORWARD DROP
+
+Block traffic from '192.168.0.10' [ Add a rule to the input chain ]
+iptables -A INPUT -s 192.168.0.10 -j DROP
+
+Block all smtp traffic from a network
+iptables -A INPUT -s 192.168.0.0/24 -p tcp --dport 25 -j DROP
+
+Accept traffic from a particular host
+iptables -A INPUT -s 192.168.0.20 -j ACCEPT
+
+Delete a rule [ 1 based index ]
+iptables -D INPUT 3
+
+Add same rule at the top of the chain
+iptables -I INPUT -s 192.168.0.20 -j ACCEPT
+
+Apply the rule only to the interface eth0
+iptables -I INPUT -i eth0 -s 192.168.0.20 -j ACCEPT
+
+Accept all SSH/HTTP/HTTPS
+iptables -A INPUT -p tcp --dport 22  -j ACCEPT
+iptables -A INPUT -p tcp --dport 80  -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+
+Remove all rules but retain the policy
+iptables --flush

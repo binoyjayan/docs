@@ -1,0 +1,65 @@
+
+-----------------------------------------------------------
+DMA Mapping
+-----------------------------------------------------------
+
+dma_map_single -  sets up IOMMU mapping and returns the DMA address
+You should use the DMA API rather than the bus-specific DMA API
+linux/dma-mapping.h : dma_addr_t
+dma_set_mask(dev, DMA_BIT_MASK(24))  - Set dma mask
+DMA mappings 
+ - Coherent
+ - Streaming
+
+
+dma_addr_t dma_handle;
+cpu_addr = dma_alloc_coherent(dev, size, &dma_handle, gfp);
+dma_free_coherent(dev, size, cpu_addr, dma_handle);
+
+struct dma_pool *pool = dma_pool_create(name, dev, size, align, boundary);
+cpu_addr = dma_pool_alloc(pool, flags, &dma_handle);
+dma_pool_free(pool, cpu_addr, dma_handle);
+dma_pool_destroy(pool);
+
+Direction
+ - DMA_BIDIRECTIONAL
+ - DMA_TO_DEVICE
+ - DMA_FROM_DEVICE
+
+
+dma_handle = dma_map_single(dev, addr, size, direction);
+if (dma_mapping_error(dev, dma_handle)) { error; }
+dma_unmap_single(dev, dma_handle, size, direction);
+
+
+
+int i, count = dma_map_sg(dev, sglist, nents, direction);
+struct scatterlist *sg;
+for_each_sg(sglist, sg, count, i) {
+	hw_address[i] = sg_dma_address(sg);
+	hw_len[i] = sg_dma_len(sg);
+}
+
+dma_unmap_sg(dev, sglist, nents, direction);
+
+If CPU needs to access data in between
+
+dma_sync_single_for_cpu(dev, dma_handle, size, direction);
+dma_sync_sg_for_cpu(dev, sglist, nents, direction);
+
+Device to regain control:
+
+dma_sync_single_for_device(dev, dma_handle, size, direction);
+dma_sync_sg_for_device(dev, sglist, nents, direction);
+
+
+-----------------------------------------------------------
+DMA Engine
+-----------------------------------------------------------
+
+
+-----------------------------------------------------------
+References
+-----------------------------------------------------------
+https://www.kernel.org/doc/Documentation/DMA-API-HOWTO.txt
+
