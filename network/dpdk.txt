@@ -1,0 +1,82 @@
+
+===========================================================
+DPDK
+===========================================================
+
+-----------------------------------------------------------
+Fundamental components
+-----------------------------------------------------------
+EAL             : Environment Abstraction Layer. Provides setup
+                  Discovering NICs, hardware used, setup huge pages.
+MBUF            : Format of packet descriptor
+MEMPOOL         : Library to create buffer pools (instead of using malloc)
+                  Uses huge pages to avoid thrashing
+RING            : Lock-less queues to exchange messages and packets between
+                  parallel entities like threads/cores
+TIMER           : Provides a timer service to DPDK execution units
+IGB_UIO         : 
+VFIO            : Enable poll mode drivers to access registers from user space directly
+UIO_PCI_GENERIC : 
+
+
+-----------------------------------------------------------
+Dependencies
+-----------------------------------------------------------
+
+sudo apt-get install libnuma-dev
+
+-----------------------------------------------------------
+Enable hugepages before boot [ kernel cmdline ]
+-----------------------------------------------------------
+Reserve 1024 pages of 2 MB:
+    hugepages=1024
+
+Reserve 4 1G pages:
+    default_hugepagesz=1G hugepagesz=1G hugepages=4
+
+-----------------------------------------------------------
+Enable hugepages after boot
+-----------------------------------------------------------
+
+sudo su -c "echo 1024 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
+
+-----------------------------------------------------------
+Using Hugepages with the DPDK
+-----------------------------------------------------------
+
+sudo mkdir /mnt/huge
+sudo mount -t hugetlbfs nodev /mnt/huge
+
+-----------------------------------------------------------
+Build
+-----------------------------------------------------------
+
+cd <dpdk src>
+export RTE_SDK=/path/to/dpdk
+
+make defconfig && make
+
+-----------------------------------------------------------
+Build Application
+-----------------------------------------------------------
+
+cd examples/helloworld
+export RTE_SDK=/path/to/dpdk
+export RTE_TARGET=build
+
+make
+
+-----------------------------------------------------------
+Reference
+-----------------------------------------------------------
+
+https://www.youtube.com/watch?v=loMeA9jhYvg
+https://doc.dpdk.org/guides/linux_gsg/sys_reqs.html
+http://doc.dpdk.org/guides/linux_gsg/sys_reqs.html#running-dpdk-applications
+https://doc.dpdk.org/guides/prog_guide/intro.html
+http://doc.dpdk.org/guides/sample_app_ug/compiling.html
+https://dpdksummit.com/Archive/pdf/2016Userspace/Day02-Session04-RonyEfraim-Userspace2016.pdf
+https://doc.dpdk.org/guides/prog_guide/env_abstraction_layer.html
+https://doc.dpdk.org/guides/prog_guide/poll_mode_drv.html#poll-mode-driver
+
+
