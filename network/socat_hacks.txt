@@ -36,6 +36,11 @@ $ socat -,raw,echo=0 tcp:127.0.0.1:2023
 // replace /bin/login by /bin/bash when using SSL client authentication, can be
 // run without root then
 
+// a simple 'telnetd' without login
+# socat tcp-l:2023,reuseaddr,fork exec:/bin/bash,pty,setsid,setpgid,stderr,ctty
+// and here an appropriate client:
+$ socat -,raw,echo=0 tcp:127.0.0.1:2023
+
 // this is a cool trick, proposed by Christophe Lohr, to dump communications to
 // two files; it would also work for other manipulations (recode, compress...)
 // and it might also work with netcat ;-)
