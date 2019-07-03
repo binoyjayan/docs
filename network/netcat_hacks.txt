@@ -13,6 +13,20 @@ nc -l -p 3333 -v -c bash
 On client:
 nc remote_host 3333
 
+Alternate way to run commands remotely using netcat
+---------------------------------------------------
+
+Some netcat implementations do not have the option '-e' or '-c'.
+In such cases, the following commands may be used.
+
+On Server:
+rm -f /tmp/f; mkfifo /tmp/f
+cat /tmp/f | /bin/bash -i 2>&1 | nc -l 127.0.0.1 1234 > /tmp/f
+
+On Client:
+nc 127.0.0.1 1234
+
+
 Transfer files
 ---------------
 
