@@ -3,7 +3,7 @@
 .tmux.conf
 ============================================================
 
-# remap prefix to Control + a
+# remap prefix to Ctrl + a
 unbind C-b
 set -g prefix C-a
 
@@ -18,9 +18,11 @@ bind r source-file ~/.tmux.conf
 setw -g monitor-activity on
 set -g visual-activity on
 
+# Make current tab color yellow
 set-window-option -g window-status-current-bg yellow
 
-set-option -g mouse-select-pane on
+# Mouse options
+# set-option -g mouse-select-pane on
 
 # quick pane cycling
 unbind ^A
@@ -38,8 +40,21 @@ tmux new -s    work
 tmux attach -t work		<<-- Join
 tmux switch -t work2
 tmux list-sessions
-tmux detach (prefix + d)
+tmux detach (prefix + d)        << -- see below
 tmux new-session -s work -n LA
+
+------------------------------------------------------------
+Using prefix
+------------------------------------------------------------
+
+'prefix` is the prefix used for tmux commands. By default, the
+prefix is 'Ctrl + b' which is remapped to 'Ctrl + a'. The control
+commands used with tmux may be used with the prefix.
+
+prefix + d : Detach from tmux session
+prefix + c : Create a new tab/window
+prefix + 0 : Navigate to tab #0
+prefix + 1 : Navigate to tab #1
 
 ------------------------------------------------------------
 Window mgmt
@@ -48,7 +63,6 @@ tmux new-window (prefix + c)
 tmux select-window -t :0-9 (prefix + 0-9)
 tmux rename-window (prefix + ,)
 tmux rename-window (prefix + ,)
-
 
 ------------------------------------------------------------
 Pane
@@ -64,6 +78,19 @@ q  show pane numbers
 x  kill pane
 
 ------------------------------------------------------------
+Scrolling
+------------------------------------------------------------
+
+prefix + [ : Enter scroll mode
+         q : Exit
+ Up Arrow  : Scroll one line up in scroll mode
+Down Arrow : Scroll one line down in scroll mode
+     PgUp  : Scroll one page up in scroll mode
+     PgDn  : Scroll one page up in scroll mode
+
+prefix + PgUp : Go directly into copy mode and scroll one page up
+
+------------------------------------------------------------
 Helpful tmux commands
 ------------------------------------------------------------
 tmux list-keys
@@ -71,20 +98,9 @@ tmux list-commands
 tmux info
 tmux source-file ~/.tmux.conf
 
-
-
-
 ------------------------------------------------------------
 Reference:
 ------------------------------------------------------------
 
 https://robots.thoughtbot.com/a-tmux-crash-course
-http://lukaszwrobel.pl/blog/tmux-tutorial-split-terminal-windows-easily
-
-
-
-
-
-
-
 
