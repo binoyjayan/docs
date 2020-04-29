@@ -1,0 +1,85 @@
+
+
+Docker Build
+--------------------------------------------------------------------------------
+
+docker build 
+docker images
+docker images -a
+
+
+docker pull debian
+
+Creating Dockerfile
+--------------------------------------------------------------------------------
+cd build
+Create 'Dockerfile' and add the following
+
+FROM debian:latest
+MAINTAINER binoy@example.com
+
+Build the image using tag 'v1'
+--------------------------------------------------------------------------------
+docker build -t binoy/demo:v1 .
+docker run -it --rm binoy/demo:v1
+docker run -it --rm binoy/demo:v1 /bin/bash
+
+Build using tag 'latest'
+--------------------------------------------------------------------------------
+docker build -t binoy/demo .
+docker run -it --rm binoy/demo /bin/bash
+
+
+Add the 'RUN' command in Dockerfile
+--------------------------------------------------------------------------------
+# 1. Run
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq apt-utils
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq htop
+RUN apt-get clean
+
+
+Add the 'RUN' command in Dockerfile
+--------------------------------------------------------------------------------
+CMD ["stop"]
+CMD ["ls", "-l" ]
+
+
+docker build -t binoy/demo .
+docker run -it --rm binoy/demo
+
+
+CMD - Run automatically
+--------------------------------------------------------------------------------
+
+CMD [ "htop" ]
+CMD [ "ls", "-l" ]
+CMD [ "/bin/bash" ]
+
+
+WORKDIR, ENV
+--------------------------------------------------------------------------------
+
+WORKDIR /root
+ENV MYROOT /root
+
+ADD items to docker image
+--------------------------------------------------------------------------------
+ADD run.sh /root/run.sh
+# CMD [ "./run.sh", "hello world" ]
+
+
+Entry point - Non overridable commands run at startup
+--------------------------------------------------------------------------------
+
+ENTRYPOINT [ "./run.sh" ]
+CMD [ "arg1", "arg2" ]
+
+
+
+
+
+
+
+
+

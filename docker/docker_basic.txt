@@ -1,0 +1,75 @@
+
+
+Installation
+--------------------------------------------------------------------------------
+MacOS - Docker Desktop
+
+
+Official images - Docker Hub [ hub.docker.com ]
+--------------------------------------------------------------------------------
+
+docker pull nginx
+docker pull debian
+docker images
+docker images -a
+
+
+Basic commands
+--------------------------------------------------------------------------------
+
+docker
+docker ps
+
+
+docker run nginx:latest
+docker run -d nginx:latest
+docker container ls
+docker ps
+docker stop <ID>
+docker run -d -p 8080:80 -p 3000:80 nginx:latest
+
+
+Manage containers
+--------------------------------------------------------------------------------
+
+docker ps -a
+docker stop  romantic_diffie
+docker start romantic_diffie
+
+docker rm romantic_diffie
+
+docker rm $(docker ps -aq) 
+
+
+docker run --name myweb -d -p 8080:80 -p 3000:80 nginx:latest 
+docker stop myweb
+
+
+Volumes
+--------------------------------------------------------------------------------
+
+mkdir myweb
+cd myweb
+echo "<h1>Hello World</h1>" > index.html 
+
+docker run --name myweb -v $(pwd):/usr/share/nginx/html:ro -d -p 8080:80 nginx
+docker exec -it myweb bash
+docker rm -f myweb
+docker run --name myweb -v $(pwd):/usr/share/nginx/html -d -p 8080:80 nginx
+
+
+Bootstrap single page template
+--------------------------------------------------------------------------------
+https://startbootstrap.com/themes/grayscale/
+
+cd grayscale
+docker run --name myweb1 -v $(pwd):/usr/share/nginx/html -d -p 8080:80 nginx
+
+
+docker run --name myweb2 --volumes-from myweb1 -d -p 8081:80 nginx
+
+
+
+
+
+
