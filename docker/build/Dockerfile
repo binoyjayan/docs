@@ -21,8 +21,8 @@ ADD run.sh /root/run.sh
 # CMD [ "./run.sh", "hello world" ]
 
 # 5. Entry point - Non overridable commands run at startup
-ENTRYPOINT [ "./run.sh" ]
-CMD [ "arg1", "arg2" ]
+# ENTRYPOINT [ "./run.sh" ]
+# CMD [ "arg1", "arg2" ]
 
 
 

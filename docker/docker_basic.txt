@@ -38,7 +38,8 @@ docker start romantic_diffie
 
 docker rm romantic_diffie
 
-docker rm $(docker ps -aq) 
+docker rm -f $(docker ps -aq) 
+docker rmi -f $(docker ps -aq) 
 
 
 docker run --name myweb -d -p 8080:80 -p 3000:80 nginx:latest 
