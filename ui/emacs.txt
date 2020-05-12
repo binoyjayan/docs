@@ -1,0 +1,118 @@
+
+Emacs
+----------------------------------------------------------------------
+
+C: Ctrl
+M: Meta (ALT)
+
+
+Session Management
+----------------------------------------------------------------------
+C-x C-c      : End the Emacs session
+C-x k RETURN : Kill current buffer
+C-g          : Abort a command
+
+Navigation
+----------------------------------------------------------------------
+C-v          : Scroll down
+M-v          : Scroll up
+C-l          : Move text around cursor to center / top / bottom of screen
+C-p          : Move previous line
+C-n          : Move next line
+C-b          : Move backwards one character
+C-f          : Move forward one character
+M-f          : Move forward a word
+M-b          : Move backwards a word
+C-a          : Move to beginning of a line
+C-e          : Move to the end of a line
+M-a          : Goto start of sentence
+M-e          : Goto end of sentence
+C-u N CMD    : Repeat the command 'CMD' N times
+
+Windows
+----------------------------------------------------------------------
+C-x 1        : One window only
+C-x k RETURN : Kill
+C-x C-c      : Quit Emacs
+
+
+Help
+----------------------------------------------------------------------
+C-h ?           : Commands help
+C-h c <CMD>     : Basic help for a command
+C-h k C-f       : More help for C-f
+C-M-v           : Scroll other help window
+C-h m           : Help for current mode
+C-h i           : Manuals
+M-x help RETURN
+
+Insert / Delete
+----------------------------------------------------------------------
+C-d          : Delete next character
+M-d          : Delete next word
+C-k          : Kill words till end of line
+M-k          : Kill words till end of sentence
+C-SPC        : Start selection (similar to visual cmd 'v' in vim)
+C-w          : Kill selection
+C-u 2 k      : Kill 2 lines
+C-y          : Yank (paste) killed text at the cursor position
+C-u 2 C-y    : Yank (paste) 2 copies of killed text
+C-y M-y      : Get previous kills
+C-/          : Undo
+C-u 2 C-/    : Undo 2 previous commands / text
+
+
+Files / Buffers / Margin
+----------------------------------------------------------------------
+C-x C-f      : Find (open/create) a file, type file name into mini buffer
+C-x C-s      : Save the file
+C-x C-b      : List buffers
+C-x b        : Switch buffer
+C-x s        : Save one or more buffers
+C-x C-c      : Quit Emacs
+C-x 1        : Delete all but one window
+C-x u        : Undo
+C-x k RETURN : Kill current buffer
+C-x f 80     : Enter margin to 80 characters
+C-u 80 C-x f : Enter margin to 80 characters
+
+
+Extend
+----------------------------------------------------------------------
+C-x          : Character extend
+M-x          : Named command extend
+C-z          : Suspend Emacs temporarily, resume with fg command or '%emacs'
+
+
+M-x repl<TAB>s         : Replace string
+M-x recover-file       : Recover a file
+M-x recover-this-file  : Recover this file - usually #filename#
+M-x fundamental-mode   : Switch to fundamental mode
+M-x text-mode          : Switch to text mode
+C-h m                  : View documentation of the current 'major mode'
+M-x auto-fill-mode     : Automatically breaks line around margin
+
+
+
+Searching
+----------------------------------------------------------------------
+C-s          : Incremental forward search, or find next occurrence
+C-r          : Incremental reverse search, or find previous occurrence
+C-g          ; Terminate search
+
+      
+Multiple windows
+----------------------------------------------------------------------
+
+C-l C-l      : Move text around cursor to top of the frame
+C-x 2        : Split
+C-M-v        : Scroll bottom window
+C-x o        : Toggle cursor between top and bottom windows
+C-x C-f      : Find file in the current window
+C-x 4 C-f    : Find file in the other window
+C-x 5 2      : New frame
+C-x 5 0      : Remove frame
+
+
+
+
