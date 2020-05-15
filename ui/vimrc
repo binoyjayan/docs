@@ -1,0 +1,58 @@
+set nocompatible              " required
+filetype off                  " required
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+" alternatively, pass a path where Vundle should install plugins
+"call vundle#begin('~/some/path/here')
+
+" let Vundle manage Vundle, required
+" Run :PluginInstall to install plugins via vim
+" add all your plugins here (note older versions of Vundle used Bundle instead of Plugin)
+Plugin 'gmarik/Vundle.vim'
+Plugin 'Valloric/YouCompleteMe'
+Plugin 'vim-syntastic/syntastic'
+Plugin 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'}
+Plugin 'tell-k/vim-autopep8'
+Plugin 'nvie/vim-flake8'
+
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+
+filetype indent plugin on
+
+syntax on
+let python_highlight_all=1
+
+" Enable folding
+"set foldmethod=indent
+"set foldlevel=99
+
+au BufNewFile,BufRead *.py set
+    \ tabstop=4 softtabstop=4 shiftwidth=4
+    \ textwidth=119 expandtab fileformat=unix nu
+
+au BufNewFile,BufRead *.sh set
+    \ tabstop=4 softtabstop=4 shiftwidth=4
+    \ textwidth=119 expandtab fileformat=unix nu
+
+au BufNewFile,BufRead *.c set
+    \ tabstop=4 softtabstop=4 shiftwidth=4
+    \ textwidth=119 expandtab fileformat=unix nu
+
+"set autoindent
+
+" au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
+
+set encoding=utf-8
+
+let g:ycm_autoclose_preview_window_after_completion=1
+map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
+" autopep8 configuration
+let g:autopep8_max_line_length=119
+
+
