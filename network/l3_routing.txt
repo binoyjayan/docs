@@ -1,0 +1,56 @@
+
+Subnets
+--------------------------------------------------------------------------------
+Subnet A: 192.168.1.0/24
+Subnet B: 192.168.4.0/24
+
+Notes
+--------------------------------------------------------------------------------
+ - A subnet is the set of devices connected with each other in the same network
+ - A subnet has an ID called the network ID.
+ - IP addresses of all devices present in the same subnet all have the same network IDs.
+ - Network ID of a subnet = IP address & subnet mask ('&' is the bitwise AND)
+ - Having more than one interfaces assigned with IP in the same subnet is a misconfiguration
+
+Machines:
+--------------------------------------------------------------------------------
+ - m1 has two interfaces one each on subnet A and subnet B (this is the gateway)
+ - m2 has a single interface on subnet A
+ - m3 has a single interface on subnet B
+
+IP Assignments
+--------------------------------------------------------------------------------
+
+m1: eth2: 192.168.4.1/24 (on subnet B which is local to m1)
+    eth2: 192.168.1.1/24 (on subnet A which is local to m1)
+
+m2: eth3: 192.168.1.2/24 (on subnet A which is local to m2)
+
+m3: eth2: 192.168.4.2/24 (on subnet B which is local to m3)
+
+Topology
+--------------------------------------------------------------------------------
+
+m3 <----subnet B----> m2 <----subnet A-----> m1
+
+Routing
+--------------------------------------------------------------------------------
+m1 can communicate with m2 and m3 via L2 routing
+m2 and m3 communicate with each other via L3 routing
+
+Add L3 routing information into iptables on machine 'm3'
+--------------------------------------------------------------------------------
+
+up route add -net 192.168.1.0 netmask 255.255.255.0 gw 192.168.4.1 dev eth2
+
+Here,
+  - This helps route packets from 'm3' to 'm2' via gateway 'm1'
+  - '192.168.1.0 netmask 255.255.255.0' is subnet A remote to 'm3'
+  - '192.168.4.1' is the gateway or the next hop
+  - The packets are forwarded to the next hop via the local interface 'eth2' 
+
+
+Similarly on m2, forward packets destined for m3 to the gateway 'm1'
+
+up route add -net 192.168.4.0 netmask 255.255.255.0 gw 192.168.1.1 dev eth3
+
