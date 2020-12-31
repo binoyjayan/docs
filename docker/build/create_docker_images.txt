@@ -1,0 +1,54 @@
+
+Creating a Dockerfile
+----------------------------------------------------------------------
+ - Specify a base image
+ - Run some commands to install additional programs
+ - Specify a command to run on container startup
+
+
+Dockerfile
+----------------------------------------------------------------------
+mkdir redis-image
+cd redis-image
+
+cat <<EOF > Dockerfile
+
+# Use base image
+FROM alpine
+
+# Download and install
+RUN apk add --update redis
+
+# What to do when it is started as a container
+CMD ["redis-server"]
+EOF
+
+Create an image that runs redis-server
+----------------------------------------------------------------------
+
+docker build .
+docker run <ID>
+
+Steps involved in Docker image creation
+----------------------------------------------------------------------
+The FROM line:
+ - Creates the alpine image
+ - We do not know the startup command at this time
+
+The RUN line:
+  - Creates a temporary container from the alpine file system snapshot
+  - The 'apk' is executed as process inside the temporary container
+  - The redis server gets installed into the current file system
+  - Save the current file system snapshot and create a temporary image
+  - Remove the previous container
+
+CMD:
+ - Create a temporary container from the previous image
+ - Add a primary command to the container
+ - Save a snapshot of the file system and save it as an image
+
+Each of the above operations create an image (temporary or otherwise)
+
+----------------------------------------------------------------------
+
+

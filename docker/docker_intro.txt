@@ -1,0 +1,110 @@
+
+Running a container from an image
+----------------------------------------------------------------------
+docker run <image> <cmd>
+
+image : Name of image to create container out of
+cmd   : Default command override
+
+Examples
+----------------------------------------------------------------------
+docker run busybox echo "hello"
+docker run busybox ls
+
+Long running commands
+----------------------------------------------------------------------
+docker run busybox ping google.com
+docker ps                               # Running containers
+docker ps -a                            # Containers that ever ran
+
+Creating and starting container
+----------------------------------------------------------------------
+docker create <image name>
+docker start  <container id>
+
+Create a container: Prepare the file system snapshot of an image to start a container
+Start a container: Execute the startup command inside the container
+Run a container: Create a fs snapshot of an image and also start it as a container with the default command
+
+docker create hello-world    # Note down container ID
+docker start -a <ID>         # Make docker watch for output from container and print on terminal
+docker start <ID>
+
+Restarting stopped containers
+----------------------------------------------------------------------
+docker run busybox echo "Hello from busybox"
+docker ps -a                                   # Note down ID
+docker start -a <ID>
+
+Remove stopped containers, networks, dangling images and cache
+----------------------------------------------------------------------
+docker system prune
+docker ps -a
+
+Log outputs
+----------------------------------------------------------------------
+docker create busybox echo "Hello from busybox"
+docker start <ID>                               # Start container without attaching
+docker logs <ID>
+
+Stopping containers
+----------------------------------------------------------------------
+docker create busybox ping google.com
+docker start <ID>
+docker logs -f <ID>
+docker stop <ID>       # Send SIGTERM to primary process, wait 10 seconds, send SIGKILL
+docker kill <ID>       # Container is brought down by force
+
+Execute additional command using 'exec'
+----------------------------------------------------------------------
+docker run redis
+docker ps
+docker exec -it <ID> redis-cli
+ - set myname binoy
+ - set myname
+
+docker exec <ID> redis-cli  # Not interactive mode. Closes immediately
+
+
+Interactive mode [ -it ]
+----------------------------------------------------------------------
+-i : Interactive (keep stdin open) and privileged mode
+-t : Allocate a pseudo-TTY
+
+docker exec -it <ID> redis-cli  # Interactive mode with pseudo tty attached
+docker exec -i <ID> redis-cli   # Only interactive mode
+
+docker exec -it <ID> sh          # Run bourne shell in interactive mode
+docker exec -it <ID> /bin/bash   # Run bash
+
+Run an container without primary process
+----------------------------------------------------------------------
+docker run -it busybox sh  # Container 1
+  - touch myfile
+docker run -it busybox sh  # Container 2 (does not share myfile with container 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
