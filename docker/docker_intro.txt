@@ -38,7 +38,8 @@ docker start -a <ID>
 
 Remove stopped containers, networks, dangling images and cache
 ----------------------------------------------------------------------
-docker system prune
+docker system prune      # Remove only dangling images
+docker system prune -a   # Remove all images
 docker ps -a
 
 Log outputs
@@ -82,29 +83,6 @@ Run an container without primary process
 docker run -it busybox sh  # Container 1
   - touch myfile
 docker run -it busybox sh  # Container 2 (does not share myfile with container 1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

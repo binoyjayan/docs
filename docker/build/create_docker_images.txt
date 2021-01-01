@@ -49,6 +49,26 @@ CMD:
 
 Each of the above operations create an image (temporary or otherwise)
 
+Tagging docker images
 ----------------------------------------------------------------------
+
+Syntax:
+docker build -t <image-tag> .
+
+image tag naming convension: <author>/<project>:<version>
+
+Examples:
+docker build -t bz/redis:latest .
+docker build -t bz/redis:1.0.0  .
+
+The docker build now shows the following message:
+Successfully tagged bz/redis:1.0.0
+
+Creating images from a container interactively [ not usually used ]
+----------------------------------------------------------------------
+docker run -it alpine /bin/sh
+apk add --update redis
+docker ps
+docker commit -c 'CMD ["redis-server"]'
 
 
