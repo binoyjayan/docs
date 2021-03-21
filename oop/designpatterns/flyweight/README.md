@@ -1,4 +1,4 @@
-#### Flyweight design pattern
+### Flyweight design pattern
 
 - Store common data externally
   - e.g. static map
