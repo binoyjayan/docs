@@ -1,0 +1,15 @@
+
+
+
+edit  /etc/docker/daemon.json
+add :
+{
+  "storage-driver": "overlay2",
+  "hosts": ["tcp://0.0.0.0:2375","unix:///var/run/docker.sock"],
+  "insecure-registries": ["docker.artifactory.int.cpacket.com"]
+}
+
+edit /lib/systemd/system/docker.service
+change ExecStart ==>  ExecStart=/usr/bin/dockerd
+systemctl daemon-reload
+systemctl restart docker
