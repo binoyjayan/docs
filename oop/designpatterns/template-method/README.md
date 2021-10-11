@@ -1,1 +1,0 @@
-### Template Method design pattern

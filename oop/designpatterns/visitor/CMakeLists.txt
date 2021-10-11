@@ -1,6 +1,0 @@
-ADD_EXECUTABLE(acyclic acyclic.cc)
-ADD_EXECUTABLE(intrusive intrusive.cc)
-ADD_EXECUTABLE(multimethods multimethods.cc)
-ADD_EXECUTABLE(reflective reflective.cc)
-ADD_EXECUTABLE(std-visit std-visit.cc)
-ADD_EXECUTABLE(visitor-double visitor-double.cc)
