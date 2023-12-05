@@ -1,0 +1,24 @@
+
+
+Local Port forwarding
+----------------------------------------
+
+Assume there is a server (S1) that has port 22 open and can be accessed
+via ssh from a local machine (L1). S1 also has access to a remote server R1
+on port 'nnnn'. However L1 does not have direct access to it.
+In this case L1 can tunnel its data destined for R1 via L1 using the
+following command and by opening a local port 'mmmm'.
+
+ssh -L mmmm:R1:nnnn  user@S1
+
+Note that L1 has ssh access to S1 on port 22.
+
+Sometimes, if S1 and R1 are the same, the command simplifies to:
+
+ssh -L mmmm:localhost:nnnn  user@S1
+
+Example:
+ssh -L 9999:127.0.0.1:8888  ubuntu@20.236.21.105
+
+
+
