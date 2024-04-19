@@ -1,0 +1,125 @@
+
+
+Diagram
+
+@ pattern { action }
+
+
+Special functions
+----------------------------------------------------------------------
+@ end        { statements }      Statements to be executed at the beginning
+
+
+Filters - current
+----------------------------------------------------------------------
+@ expression { statements }      Filter expressions
+
+Filters - Desired
+----------------------------------------------------------------------
+@ /regex/    { statements }      Regex filter expressions
+@ r1, r2     { statements }      Range filter expressions
+
+
+Example patterns
+----------------------------------------------------------------------
+
+
+
+Special variables
+----------------------------------------------------------------------
+argc                             Command-line arguments
+ 
+NP                               Packet index (1-based)
+PL                               Length of current packet
+
+$0                               Pcap packet
+$1                               Ethernet packet
+$2                               ipv4 packet (if $1.type is ipv4)
+$3                               udp/tcp/... packet
+$4                               Raw data
+$n                               Packet 'n' level deep where n is a variable
+
+Note: Type coercions will be done automatically
+
+
+Filter - examples
+----------------------------------------------------------------------
+
+@ NP <  10                         Packet index (1-based) is less than 10
+@ PL <= 64                         Packet length is <= 64 bytes
+@ $4 ~ /linux/                     Match Regex
+@ ($2).src == "192.168.0.1"        Compare IP
+@ ($3).srcport == 22               Compare port
+@ NP == 1, NP == 10                Writes packets 1 through 10
+
+
+
+Simplest filters
+======================================================================
+
+Match every pcap packet
+---------------------------------------------------------------------
+p2sh -c '@ { write(stdout, $0); }' < in.pcap > out.pcap
+
+
+64 byte packets
+---------------------------------------------------------------------
+p2sh -c '@ ($0).caplen <= 64 true' < in.pcap > out.pcap
+p2sh -c '@ ($0).wirelen <= 64 true' < in.pcap > out.pcap
+
+
+Print packet number and length
+---------------------------------------------------------------------
+p2sh -s -c '@ { eprintln("{}: {}", NP, PL) }' < in.pcap
+
+
+Print timestamp and length
+---------------------------------------------------------------------
+p2sh -s -c '@ { eprintln("{}.{}: {}", ($0).sec, ($0).usec, PL) }' < in.pcap
+
+
+
+Print src -> dest IP addresses
+---------------------------------------------------------------------
+p2sh -s -c '@ { eprintln("{} -> {}", ($1).src, ($1).dst); }' < in.pcap
+p2sh -s -c '@ { puts(($2).src, " -> ", ($2).dst); }' < in.pcap
+
+
+Use with pipes
+---------------------------------------------------------------------
+tcpdump -i eth0 -w - | p2sh -f '{ puts($2.src, "->", $2.dst)}'
+
+
+Print summary info
+---------------------------------------------------------------------
+
+let pkt_size = 0;
+
+@ {
+  pkt_size += PL;
+  raw_size + len($4);
+}
+
+fn end() { println("Total packet size:{}, Raw size: {}", raw_size); }
+
+
+Calling custom function
+---------------------------------------------------------------------
+
+fn is_priv_port(p) {
+  p >=0 && p <= 1024
+} 
+
+@ { puts(is_priv_port($3.srcport)); }
+
+
+Reference
+---------------------------------------------------------------------
+
+https://www.youtube.com/watch?v=E5aQxIdjT0M
+
+
+Code
+---------------------------------------------------------------------
+
+
