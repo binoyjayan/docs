@@ -2,6 +2,12 @@
 
 ### Install clang
 
+Ubuntu:
+```
+sudo apt update
+sudo apt install clang
+```
+
 ### Install 'libbpf-dev'
 
 ```
