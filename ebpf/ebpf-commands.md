@@ -166,4 +166,43 @@ sudo rm /sys/fs/bpf/hello
 sudo bpftool prog show name hello
 ```
 
+## BPF to BPF Calls
+
+Function that extracts the syscall
+opcode from the tracepoint arguments:
+```
+static __attribute((noinline)) int get_opcode(struct bpf_raw_tracepoint_args *ctx) {
+    return ctx->args[1];
+}
+```
+
+BPF program that calls this function
+
+```
+SEC("raw_tp")
+    int hello(struct bpf_raw_tracepoint_args *ctx) {
+    int opcode = get_opcode(ctx);
+    bpf_printk("Syscall: %d", opcode);
+    return 0;
+}
+```
+
+Compile and load
+```
+clang -target bpf -I/usr/include/$(uname -m)-linux-gnu -g -O2 -o hello-func.bpf.o -c hello-func.bpf.c
+sudo bpftool prog load hello-func.bpf.o /sys/fs/bpf/hello
+```
+
+Inspect:
+```
+sudo bpftool prog list name hello
+sudo bpftool prog dump xlated name hello
+```
+
+The call to get_opcode looks like this:
+
+```
+; int opcode = get_opcode(ctx);
+   0: (85) call pc+12#bpf_prog_cbacc90865b1b9a5_get_opcode
+```
 
